@@ -16,7 +16,7 @@ $navigation = [
 		<a class="site-logo" href="<?php echo $path_prefix; ?>index.php" aria-label="Farmecul Tău - Acasă">
 			<img src="<?php echo $path_prefix; ?>images/logo-farmecul-tau.png" alt="Farmecul Tău">
 		</a>
-		<button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-navigation">
+		<button class="menu-toggle" type="button" aria-label="Deschide meniul" aria-expanded="false" aria-controls="site-navigation">
 			<span class="menu-toggle-label">Meniu</span>
 			<span class="menu-icon" aria-hidden="true"><span></span><span></span><span></span></span>
 		</button>

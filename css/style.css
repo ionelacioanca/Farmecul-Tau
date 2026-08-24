@@ -37,8 +37,8 @@ body {
 .site-logo img {
 	display: block;
 	width: auto;
-	max-width: min(190px, 32vw);
-	height: 62px;
+	max-width: min(250px, 40vw);
+	height: 88px;
 	object-fit: contain;
 }
 
@@ -69,9 +69,10 @@ body {
 
 .site-nav .nav-cta {
 	padding: 11px 18px;
-	border: 1px solid var(--gold);
+	border: 1px solid var(--ivory);
 	border-radius: 4px;
-	color: var(--ivory);
+	background: var(--ivory);
+	color: var(--emerald);
 	transition: background-color 180ms ease, color 180ms ease;
 }
 
@@ -85,21 +86,20 @@ body {
 .menu-toggle {
 	display: none;
 	align-items: center;
-	gap: 10px;
-	padding: 8px 0 8px 12px;
+	padding: 10px 0 10px 12px;
 	border: 0;
 	background: transparent;
 	color: var(--ivory);
 	cursor: pointer;
 	font-family: 'Cormorant Garamond', Georgia, serif;
-	font-size: 1.1rem;
 }
 
-.menu-icon { display: grid; gap: 5px; width: 26px; }
-.menu-icon span { display: block; height: 1px; background: var(--ivory); transition: transform 180ms ease, opacity 180ms ease; }
-.menu-toggle[aria-expanded='true'] .menu-icon span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.menu-toggle-label { display: none; }
+.menu-icon { display: grid; gap: 6px; width: 28px; justify-items: center; }
+.menu-icon span { display: block; width: 28px; height: 1px; background: var(--ivory); transition: transform 220ms ease, opacity 180ms ease; }
+.menu-toggle[aria-expanded='true'] .menu-icon span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
 .menu-toggle[aria-expanded='true'] .menu-icon span:nth-child(2) { opacity: 0; }
-.menu-toggle[aria-expanded='true'] .menu-icon span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+.menu-toggle[aria-expanded='true'] .menu-icon span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
 @media (max-width: 900px) {
 	.header-inner { width: min(100% - 36px, 1240px); }
@@ -119,10 +119,10 @@ body {
 	.site-nav ul { display: block; }
 	.site-nav li + li { border-top: 1px solid rgba(255, 255, 240, 0.12); }
 	.site-nav a, .site-nav .nav-cta { display: block; padding: 14px 4px; border: 0; border-radius: 0; }
-	.site-nav .nav-cta { margin-top: 8px; padding: 12px 16px; border: 1px solid var(--gold); border-radius: 4px; text-align: center; }
+	.site-nav .nav-cta { margin-top: 8px; padding: 12px 16px; border: 1px solid var(--ivory); border-radius: 4px; text-align: center; }
 }
 
 @media (max-width: 480px) {
 	.header-inner { width: min(100% - 28px, 1240px); }
-	.site-logo img { max-width: 165px; height: 56px; }
+	.site-logo img { max-width: 220px; height: 76px; }
 }
