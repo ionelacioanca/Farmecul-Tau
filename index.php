@@ -8,6 +8,7 @@
 </head>
 <body>
 	<?php require_once __DIR__ . '/includes/header.php'; ?>
+	<?php require_once __DIR__ . '/includes/hero.php'; ?>
 	<script src="js/script.js"></script>
 </body>
 </html>
