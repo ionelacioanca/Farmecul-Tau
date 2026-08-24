@@ -1,0 +1,2 @@
+<?php
+// servicii page
