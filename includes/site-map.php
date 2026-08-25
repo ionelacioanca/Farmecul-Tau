@@ -24,8 +24,8 @@
 
 			<div class="col-12 col-md-6 col-xl-4 d-flex" role="listitem">
 				<article class="destination-card destination-card-products w-100" aria-labelledby="destination-products-title">
-					<div class="destination-visual" aria-hidden="true">
-						<span class="destination-ink">Atelier</span>
+					<div class="destination-visual destination-visual-products">
+						<img class="destination-product-illustration" src="images/produse-home.png" alt="Ilustrație line-art cu produse profesionale pentru îngrijire și coafare">
 					</div>
 					<div class="destination-content">
 						<h3 class="destination-title" id="destination-products-title">PRODUSE</h3>
@@ -39,8 +39,8 @@
 
 			<div class="col-12 col-md-6 col-xl-4 d-flex" role="listitem">
 				<article class="destination-card destination-card-about w-100" aria-labelledby="destination-about-title">
-					<div class="destination-visual" aria-hidden="true">
-						<span class="destination-ink">Semnătură</span>
+					<div class="destination-visual destination-visual-about">
+						<img class="destination-about-illustration" src="images/despre-home.png" alt="Ilustrație elegantă pentru povestea Farmecul Tău">
 					</div>
 					<div class="destination-content">
 						<h3 class="destination-title" id="destination-about-title">DESPRE</h3>

@@ -371,16 +371,66 @@ body {
 }
 
 .destination-card-products .destination-visual {
-	background:
-		repeating-linear-gradient(0deg, rgba(198, 161, 91, 0.09) 0, rgba(198, 161, 91, 0.09) 1px, transparent 1px, transparent 18px),
-		rgba(25, 90, 72, 0.03);
+	border-bottom: 0;
+	border-radius: 16px;
+	background: var(--emerald);
+	overflow: hidden;
+}
+
+.destination-card-products {
+	border-radius: 16px;
+	overflow: hidden;
+}
+
+.destination-card-products .destination-visual::after {
+	content: none;
+}
+
+.destination-product-illustration {
+	display: block;
+	width: 100%;
+	height: 100%;
+	min-width: 0;
+	min-height: 0;
+	padding: clamp(18px, 2.6vw, 28px);
+	object-fit: contain;
+	object-position: center;
+	transition: transform 0.4s ease;
+}
+
+.destination-card-products:hover .destination-product-illustration,
+.destination-card-products:focus-within .destination-product-illustration {
+	transform: scale(1.03);
 }
 
 .destination-card-about .destination-visual {
-	background:
-		radial-gradient(circle at 30% 40%, rgba(198, 161, 91, 0.16) 0, rgba(198, 161, 91, 0.16) 12%, transparent 13%),
-		radial-gradient(circle at 70% 65%, rgba(25, 90, 72, 0.11) 0, rgba(25, 90, 72, 0.11) 10%, transparent 11%),
-		rgba(255, 255, 240, 0.7);
+	border-bottom: 0;
+	border-radius: 16px;
+	background: var(--emerald);
+	overflow: hidden;
+}
+
+.destination-card-about {
+	border-radius: 16px;
+	overflow: hidden;
+}
+
+.destination-card-about .destination-visual::after {
+	content: none;
+}
+
+.destination-about-illustration {
+	width: 100%;
+	height: 100%;
+	padding: clamp(18px, 2.6vw, 28px);
+	object-fit: contain;
+	object-position: center;
+	transition: transform 0.4s ease;
+}
+
+.destination-card-about:hover .destination-about-illustration,
+.destination-card-about:focus-within .destination-about-illustration {
+	transform: scale(1.03);
 }
 
 .menu-toggle {
@@ -477,5 +527,11 @@ body {
 	}
 	.destination-text {
 		font-size: 1.1rem;
+	}
+	.destination-product-illustration {
+		padding: 16px;
+	}
+	.destination-about-illustration {
+		padding: 16px;
 	}
 }
