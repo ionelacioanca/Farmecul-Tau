@@ -1,0 +1,206 @@
+<?php
+declare(strict_types=1);
+
+header('Content-Type: application/json; charset=utf-8');
+
+require_once __DIR__ . '/../includes/api-response.php';
+require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/booking.php';
+
+setSalonTimezone();
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+	sendJsonResponse(405, [
+		'success' => false,
+		'error' => 'Method not allowed.',
+	]);
+}
+
+$payload = readJsonRequestBody();
+
+$serviceId = filter_var($payload['service_id'] ?? null, FILTER_VALIDATE_INT, [
+	'options' => ['min_range' => 1],
+]);
+$specialistId = filter_var($payload['specialist_id'] ?? null, FILTER_VALIDATE_INT, [
+	'options' => ['min_range' => 1],
+]);
+$dateInput = isset($payload['date']) ? trim((string) $payload['date']) : '';
+$timeInput = isset($payload['time']) ? trim((string) $payload['time']) : '';
+$customerName = isset($payload['customer_name']) ? trim((string) $payload['customer_name']) : '';
+$customerEmail = isset($payload['customer_email']) ? strtolower(trim((string) $payload['customer_email'])) : '';
+$customerPhone = isset($payload['customer_phone']) ? trim((string) $payload['customer_phone']) : '';
+$notes = isset($payload['notes']) ? trim((string) $payload['notes']) : '';
+
+$date = $dateInput !== '' ? parseBookingDate($dateInput) : null;
+$candidateStart = $date !== null ? parseBookingTime($date, $timeInput) : null;
+$errors = [];
+
+if ($serviceId === false) {
+	$errors['service_id'] = 'Te rugăm să alegi un serviciu valid.';
+}
+
+if ($specialistId === false) {
+	$errors['specialist_id'] = 'Te rugăm să alegi un specialist valid.';
+}
+
+if ($date === null) {
+	$errors['date'] = 'Te rugăm să alegi o dată validă.';
+} elseif ($date < new DateTimeImmutable('today', getSalonTimezone())) {
+	$errors['date'] = 'Data nu poate fi în trecut.';
+}
+
+if ($candidateStart === null) {
+	$errors['time'] = 'Te rugăm să alegi o oră validă.';
+} elseif (!in_array((int) $candidateStart->format('i'), [0, 30], true)) {
+	$errors['time'] = 'Te rugăm să alegi o oră disponibilă din listă.';
+}
+
+if ($customerName === '' || strlen($customerName) > 150) {
+	$errors['customer_name'] = 'Te rugăm să introduci numele.';
+}
+
+if (!filter_var($customerEmail, FILTER_VALIDATE_EMAIL) || strlen($customerEmail) > 255) {
+	$errors['customer_email'] = 'Te rugăm să introduci o adresă de email validă.';
+}
+
+if ($customerPhone === '' || strlen($customerPhone) > 50 || !preg_match('/^[0-9+\s().-]{6,50}$/', $customerPhone)) {
+	$errors['customer_phone'] = 'Te rugăm să introduci un număr de telefon valid.';
+}
+
+if (strlen($notes) > 1000) {
+	$errors['notes'] = 'Observațiile pot avea maximum 1000 de caractere.';
+}
+
+if ($errors !== []) {
+	sendJsonResponse(422, [
+		'success' => false,
+		'errors' => $errors,
+	]);
+}
+
+try {
+	require_once __DIR__ . '/../includes/db.php';
+
+	$currentUser = getCurrentUser($pdo);
+	$customerUserId = $currentUser !== null ? (int) $currentUser['id'] : null;
+	$lockName = 'booking:' . $specialistId . ':' . $date->format('Y-m-d');
+	$lockAcquired = false;
+
+	$lockStatement = $pdo->prepare('SELECT GET_LOCK(:lock_name, 5) AS lock_acquired');
+	$lockStatement->execute(['lock_name' => $lockName]);
+	$lockResult = $lockStatement->fetch();
+	$lockAcquired = $lockResult !== false && (int) $lockResult['lock_acquired'] === 1;
+
+	if (!$lockAcquired) {
+		sendJsonResponse(409, [
+			'success' => false,
+			'code' => 'slot_unavailable',
+			'message' => 'Ora selectată nu mai este disponibilă. Te rugăm să alegi un alt interval.',
+		]);
+	}
+
+	$pdo->beginTransaction();
+
+	$bookingContext = getBookingContext($pdo, $serviceId, $specialistId);
+
+	if ($bookingContext === null) {
+		$pdo->rollBack();
+		sendJsonResponse(404, [
+			'success' => false,
+			'error' => 'Serviciul sau specialistul nu este disponibil.',
+		]);
+	}
+
+	$durationMinutes = (int) $bookingContext['duration_minutes'];
+
+	if ($durationMinutes <= 0) {
+		$pdo->rollBack();
+		sendJsonResponse(409, [
+			'success' => false,
+			'error' => 'Durata serviciului nu este configurată corect.',
+		]);
+	}
+
+	$candidateEnd = $candidateStart->add(new DateInterval('PT' . $durationMinutes . 'M'));
+
+	if (!isBookingSlotAvailable($pdo, $specialistId, $candidateStart, $candidateEnd, true)) {
+		$pdo->rollBack();
+		sendJsonResponse(409, [
+			'success' => false,
+			'code' => 'slot_unavailable',
+			'message' => 'Ora selectată nu mai este disponibilă. Te rugăm să alegi un alt interval.',
+		]);
+	}
+
+	$insertStatement = $pdo->prepare(
+		"INSERT INTO appointments (
+			customer_user_id,
+			customer_name,
+			customer_email,
+			customer_phone,
+			service_id,
+			specialist_id,
+			start_datetime,
+			end_datetime,
+			status,
+			source,
+			notes
+		) VALUES (
+			:customer_user_id,
+			:customer_name,
+			:customer_email,
+			:customer_phone,
+			:service_id,
+			:specialist_id,
+			:start_datetime,
+			:end_datetime,
+			'pending',
+			'online',
+			:notes
+		)"
+	);
+	$insertStatement->execute([
+		'customer_user_id' => $customerUserId,
+		'customer_name' => $customerName,
+		'customer_email' => $customerEmail,
+		'customer_phone' => $customerPhone,
+		'service_id' => $serviceId,
+		'specialist_id' => $specialistId,
+		'start_datetime' => $candidateStart->format('Y-m-d H:i:s'),
+		'end_datetime' => $candidateEnd->format('Y-m-d H:i:s'),
+		'notes' => $notes !== '' ? $notes : null,
+	]);
+
+	$appointmentId = (int) $pdo->lastInsertId();
+	$pdo->commit();
+
+	sendJsonResponse(201, [
+		'success' => true,
+		'appointment' => [
+			'id' => $appointmentId,
+			'status' => 'pending',
+			'date' => $date->format('Y-m-d'),
+			'time' => $candidateStart->format('H:i'),
+		],
+		'message' => 'Solicitarea ta de programare a fost trimisă.',
+	]);
+} catch (Throwable $exception) {
+	if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) {
+		$pdo->rollBack();
+	}
+
+	error_log('Farmecul Tau create appointment failed: ' . $exception->getMessage());
+	sendJsonResponse(500, [
+		'success' => false,
+		'error' => 'Solicitarea de programare nu a putut fi trimisă.',
+	]);
+} finally {
+	if (isset($pdo, $lockAcquired, $lockName) && $pdo instanceof PDO && $lockAcquired) {
+		try {
+			$releaseStatement = $pdo->prepare('SELECT RELEASE_LOCK(:lock_name)');
+			$releaseStatement->execute(['lock_name' => $lockName]);
+		} catch (Throwable $releaseException) {
+			error_log('Farmecul Tau booking lock release failed: ' . $releaseException->getMessage());
+		}
+	}
+}
