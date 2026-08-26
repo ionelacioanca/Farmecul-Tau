@@ -7,6 +7,7 @@ $navigation = [
 	'Oferte' => 'pages/oferte.php',
 	'Produse' => 'pages/produse.php',
 	'Despre' => 'pages/despre.php',
+	'Cont' => 'pages/contul-meu.php',
 	'Programări' => 'pages/programari.php',
 ];
 ?>

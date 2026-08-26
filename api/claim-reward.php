@@ -47,6 +47,7 @@ try {
 		'SELECT id
 		 FROM users
 		 WHERE id = :user_id
+			AND role = \'customer\'
 		 LIMIT 1
 		 FOR UPDATE'
 	);

@@ -15,7 +15,7 @@ function getCurrentUserId(): ?int
 {
 	startAppSession();
 
-	$userId = $_SESSION['user_id'] ?? null;
+	$userId = $_SESSION['customer_user_id'] ?? null;
 
 	return is_int($userId) && $userId > 0 ? $userId : null;
 }
@@ -24,13 +24,14 @@ function setAuthenticatedUser(int $userId): void
 {
 	startAppSession();
 	session_regenerate_id(true);
-	$_SESSION['user_id'] = $userId;
+	unset($_SESSION['user_id']);
+	$_SESSION['customer_user_id'] = $userId;
 }
 
 function clearAuthenticatedUser(): void
 {
 	startAppSession();
-	unset($_SESSION['user_id']);
+	unset($_SESSION['customer_user_id'], $_SESSION['user_id']);
 	session_regenerate_id(true);
 }
 
@@ -46,6 +47,7 @@ function getCurrentUser(PDO $pdo): ?array
 		'SELECT id, name, email
 		 FROM users
 		 WHERE id = :id
+			AND role = \'customer\'
 		 LIMIT 1'
 	);
 	$statement->execute(['id' => $userId]);

@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS users (
 	name VARCHAR(150) NOT NULL,
 	email VARCHAR(255) NOT NULL UNIQUE,
 	password_hash VARCHAR(255) NOT NULL,
+	role ENUM('customer', 'admin') NOT NULL DEFAULT 'customer',
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -29,3 +30,11 @@ CREATE TABLE IF NOT EXISTS promo_codes (
 
 ALTER TABLE promo_codes
 	MODIFY status ENUM('active', 'used', 'expired') NOT NULL DEFAULT 'active';
+
+ALTER TABLE users
+	ADD COLUMN IF NOT EXISTS role ENUM('customer', 'admin') NOT NULL DEFAULT 'customer'
+	AFTER password_hash;
+
+UPDATE users
+SET role = 'customer'
+WHERE role IS NULL;

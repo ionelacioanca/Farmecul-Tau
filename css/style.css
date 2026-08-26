@@ -878,6 +878,612 @@ body {
 	line-height: 1.35;
 }
 
+.account-page {
+	min-height: calc(100vh - 90px);
+	padding: clamp(56px, 8vw, 96px) 24px;
+	background: var(--ivory);
+}
+
+.account-shell {
+	width: min(100%, 1040px);
+	margin: 0 auto;
+}
+
+.account-intro {
+	display: flex;
+	align-items: flex-end;
+	justify-content: space-between;
+	gap: 24px;
+	margin-bottom: 28px;
+}
+
+.account-kicker,
+.account-email,
+.account-text,
+.account-reward-description {
+	margin: 0;
+}
+
+.account-kicker {
+	color: var(--gold);
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: 0.98rem;
+	font-weight: 600;
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+}
+
+.account-title {
+	margin: 10px 0 0;
+	color: var(--black);
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: clamp(2.4rem, 5vw, 4rem);
+	font-weight: 600;
+	line-height: 1;
+}
+
+.account-email,
+.account-text,
+.account-reward-description {
+	color: rgba(17, 17, 17, 0.78);
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: 1.18rem;
+	line-height: 1.5;
+}
+
+.account-email {
+	margin-top: 12px;
+}
+
+.account-panel {
+	padding: clamp(28px, 5vw, 46px);
+	border: 1px solid rgba(25, 90, 72, 0.18);
+	border-radius: 18px;
+	background: rgba(255, 255, 240, 0.94);
+}
+
+.account-panel + .account-panel {
+	margin-top: 24px;
+}
+
+.account-active-reward {
+	border-color: rgba(198, 161, 91, 0.7);
+	background: var(--black);
+	color: var(--ivory);
+}
+
+.account-active-reward .account-reward-title,
+.account-active-reward .account-reward-description {
+	color: var(--ivory);
+}
+
+.account-active-reward .account-reward-description {
+	color: rgba(255, 255, 240, 0.82);
+}
+
+.account-reward-title,
+.account-section-title {
+	margin: 12px 0 0;
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-weight: 600;
+	line-height: 1.1;
+}
+
+.account-reward-title {
+	font-size: clamp(1.8rem, 4vw, 2.7rem);
+}
+
+.account-section-title {
+	margin-top: 0;
+	color: var(--emerald);
+	font-size: clamp(1.55rem, 3vw, 2.1rem);
+	letter-spacing: 0.1em;
+}
+
+.account-reward-description {
+	max-width: 58ch;
+	margin-top: 14px;
+}
+
+.account-code-grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 14px;
+	margin-top: 28px;
+}
+
+.account-code-grid div {
+	padding: 18px;
+	border: 1px solid rgba(198, 161, 91, 0.54);
+	border-radius: 14px;
+}
+
+.account-code-grid span,
+.account-history-item dt {
+	display: block;
+	color: var(--gold);
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: 0.88rem;
+	font-weight: 600;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+}
+
+.account-code-grid strong {
+	display: block;
+	margin-top: 8px;
+	color: var(--ivory);
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: clamp(1.25rem, 2.4vw, 1.75rem);
+	font-weight: 600;
+	line-height: 1.15;
+	overflow-wrap: anywhere;
+}
+
+.account-history-list {
+	display: grid;
+	gap: 14px;
+	margin-top: 22px;
+}
+
+.account-history-item {
+	padding: 20px;
+	border: 1px solid rgba(25, 90, 72, 0.16);
+	border-radius: 14px;
+	background: rgba(255, 255, 240, 0.9);
+}
+
+.account-history-item h3 {
+	margin: 0;
+	color: var(--black);
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: 1.45rem;
+	font-weight: 600;
+	line-height: 1.18;
+}
+
+.account-history-item dl {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 14px;
+	margin: 18px 0 0;
+}
+
+.account-history-item dd {
+	margin: 6px 0 0;
+	color: rgba(17, 17, 17, 0.82);
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: 1.08rem;
+	font-weight: 600;
+	overflow-wrap: anywhere;
+}
+
+.account-button,
+.account-logout {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 46px;
+	padding: 12px 22px;
+	border: 1px solid var(--emerald);
+	border-radius: 10px;
+	background: var(--emerald);
+	color: var(--ivory);
+	cursor: pointer;
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: 0.98rem;
+	font-weight: 600;
+	letter-spacing: 0.1em;
+	line-height: 1.1;
+	text-decoration: none;
+	text-transform: uppercase;
+	transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
+.account-button {
+	margin-top: 24px;
+}
+
+.account-logout {
+	flex: 0 0 auto;
+	background: transparent;
+	color: var(--emerald);
+}
+
+.account-button:hover,
+.account-button:focus-visible,
+.account-logout:hover,
+.account-logout:focus-visible {
+	border-color: var(--gold);
+	background: var(--gold);
+	color: var(--black);
+}
+
+.account-login-required {
+	max-width: 680px;
+	margin: 0 auto;
+	text-align: center;
+}
+
+.account-auth-tabs {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 10px;
+	margin-top: 28px;
+}
+
+.account-auth-tab {
+	min-height: 46px;
+	padding: 10px 12px;
+	border: 1px solid var(--gold);
+	border-radius: 10px;
+	background: transparent;
+	color: var(--emerald);
+	cursor: pointer;
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: 0.95rem;
+	font-weight: 600;
+	letter-spacing: 0.1em;
+	line-height: 1.15;
+	text-transform: uppercase;
+	transition: background-color 180ms ease, color 180ms ease;
+}
+
+.account-auth-tab.is-active,
+.account-auth-tab:hover,
+.account-auth-tab:focus-visible {
+	background: var(--gold);
+	color: var(--black);
+}
+
+.account-auth-form {
+	display: grid;
+	gap: 16px;
+	max-width: 440px;
+	margin: 24px auto 0;
+	text-align: left;
+}
+
+.account-auth-form[hidden] {
+	display: none;
+}
+
+.account-auth-form label {
+	display: grid;
+	gap: 7px;
+	margin: 0;
+	color: rgba(17, 17, 17, 0.82);
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: 1.05rem;
+}
+
+.account-auth-form input {
+	width: 100%;
+	min-height: 46px;
+	border: 1px solid rgba(25, 90, 72, 0.28);
+	border-radius: 10px;
+	background: var(--ivory);
+	color: var(--black);
+	font: inherit;
+	padding: 10px 13px;
+}
+
+.account-auth-form input:focus-visible,
+.account-auth-tab:focus-visible {
+	outline: 2px solid var(--gold);
+	outline-offset: 3px;
+}
+
+.account-auth-form .account-button {
+	width: 100%;
+	margin-top: 4px;
+}
+
+.account-auth-form .account-button:disabled {
+	cursor: default;
+	opacity: 0.64;
+}
+
+.account-auth-message {
+	margin: 0;
+	color: var(--emerald);
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: 1.06rem;
+	line-height: 1.35;
+	text-align: center;
+}
+
+.admin-login-page,
+.admin-page {
+	min-height: 100vh;
+	background: var(--ivory);
+	color: var(--black);
+	font-family: 'Cormorant Garamond', Georgia, serif;
+}
+
+.admin-login-page {
+	display: grid;
+	place-items: center;
+	padding: 24px;
+}
+
+.admin-login-panel,
+.admin-panel {
+	width: min(100%, 1100px);
+	border: 1px solid rgba(25, 90, 72, 0.18);
+	border-radius: 18px;
+	background: rgba(255, 255, 240, 0.96);
+}
+
+.admin-login-panel {
+	max-width: 480px;
+	padding: clamp(30px, 5vw, 44px);
+}
+
+.admin-header {
+	display: flex;
+	align-items: flex-end;
+	justify-content: space-between;
+	gap: 24px;
+	padding: 28px clamp(18px, 4vw, 44px);
+	border-bottom: 1px solid rgba(25, 90, 72, 0.16);
+	background: var(--black);
+	color: var(--ivory);
+}
+
+.admin-page {
+	padding: clamp(28px, 5vw, 54px) clamp(14px, 4vw, 44px);
+}
+
+.admin-panel {
+	margin: 0 auto;
+	padding: clamp(22px, 4vw, 34px);
+}
+
+.admin-kicker,
+.admin-welcome,
+.admin-form-message,
+.admin-alert,
+.admin-empty {
+	margin: 0;
+}
+
+.admin-kicker {
+	color: var(--gold);
+	font-size: 0.9rem;
+	font-weight: 600;
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+}
+
+.admin-title {
+	margin: 8px 0 0;
+	color: inherit;
+	font-size: clamp(2rem, 4vw, 3rem);
+	font-weight: 600;
+	line-height: 1.05;
+}
+
+.admin-nav {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+
+.admin-nav-form {
+	margin: 0;
+}
+
+.admin-nav a,
+.admin-nav-form button,
+.admin-button,
+.admin-small-button,
+.admin-card-link {
+	border: 1px solid var(--gold);
+	border-radius: 10px;
+	font-weight: 600;
+	text-decoration: none;
+	transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease;
+}
+
+.admin-nav a {
+	padding: 10px 13px;
+	color: var(--gold);
+	font-size: 0.92rem;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.admin-nav-form button {
+	min-height: 100%;
+	padding: 10px 13px;
+	background: transparent;
+	color: var(--gold);
+	cursor: pointer;
+	font-family: inherit;
+	font-size: 0.92rem;
+	letter-spacing: 0.08em;
+	line-height: 1.15;
+	text-transform: uppercase;
+}
+
+.admin-nav a:hover,
+.admin-nav a:focus-visible,
+.admin-nav a.is-active,
+.admin-nav-form button:hover,
+.admin-nav-form button:focus-visible,
+.admin-button:hover,
+.admin-button:focus-visible,
+.admin-small-button:hover,
+.admin-small-button:focus-visible,
+.admin-card-link:hover,
+.admin-card-link:focus-visible {
+	background: var(--gold);
+	color: var(--black);
+}
+
+.admin-form {
+	display: grid;
+	gap: 16px;
+	margin-top: 24px;
+}
+
+.admin-form label {
+	display: grid;
+	gap: 7px;
+	margin: 0;
+	font-size: 1.05rem;
+}
+
+.admin-form input {
+	min-height: 46px;
+	border: 1px solid rgba(25, 90, 72, 0.28);
+	border-radius: 10px;
+	background: var(--ivory);
+	color: var(--black);
+	font: inherit;
+	padding: 10px 13px;
+}
+
+.admin-form input:focus-visible,
+.admin-button:focus-visible,
+.admin-small-button:focus-visible,
+.admin-card-link:focus-visible {
+	outline: 2px solid var(--gold);
+	outline-offset: 3px;
+}
+
+.admin-button,
+.admin-small-button {
+	min-height: 42px;
+	background: var(--black);
+	color: var(--ivory);
+	cursor: pointer;
+	font-family: inherit;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.admin-button {
+	padding: 12px 18px;
+}
+
+.admin-form-message,
+.admin-alert-error {
+	color: #8f1d1d;
+}
+
+.admin-welcome,
+.admin-empty {
+	color: rgba(17, 17, 17, 0.78);
+	font-size: 1.18rem;
+}
+
+.admin-actions {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 16px;
+	margin-top: 22px;
+}
+
+.admin-card-link {
+	display: grid;
+	gap: 8px;
+	padding: 22px;
+	color: var(--black);
+}
+
+.admin-card-link span {
+	color: var(--emerald);
+	font-size: 1.42rem;
+}
+
+.admin-card-link strong {
+	color: rgba(17, 17, 17, 0.72);
+	font-size: 1rem;
+	font-weight: 500;
+}
+
+.admin-alert {
+	margin-bottom: 18px;
+	padding: 12px 14px;
+	border-radius: 10px;
+	font-size: 1.06rem;
+}
+
+.admin-alert-success {
+	border: 1px solid rgba(25, 90, 72, 0.28);
+	color: var(--emerald);
+}
+
+.admin-alert-error {
+	border: 1px solid rgba(143, 29, 29, 0.28);
+}
+
+.admin-table-wrap {
+	width: 100%;
+	overflow-x: auto;
+}
+
+.admin-table {
+	width: 100%;
+	border-collapse: collapse;
+	min-width: 960px;
+}
+
+.admin-table th,
+.admin-table td {
+	padding: 13px 12px;
+	border-bottom: 1px solid rgba(25, 90, 72, 0.14);
+	text-align: left;
+	vertical-align: top;
+}
+
+.admin-table th {
+	color: var(--emerald);
+	font-size: 0.86rem;
+	letter-spacing: 0.09em;
+	text-transform: uppercase;
+}
+
+.admin-table td {
+	color: rgba(17, 17, 17, 0.82);
+	font-size: 1rem;
+}
+
+.admin-status {
+	display: inline-flex;
+	padding: 5px 9px;
+	border-radius: 999px;
+	font-size: 0.78rem;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+}
+
+.admin-status-active {
+	background: rgba(25, 90, 72, 0.12);
+	color: var(--emerald);
+}
+
+.admin-status-used {
+	background: rgba(198, 161, 91, 0.18);
+	color: #72551d;
+}
+
+.admin-status-expired {
+	background: rgba(17, 17, 17, 0.09);
+	color: rgba(17, 17, 17, 0.68);
+}
+
+.admin-small-button {
+	padding: 8px 11px;
+	font-size: 0.78rem;
+}
+
+.admin-muted {
+	color: rgba(17, 17, 17, 0.46);
+}
+
 .menu-toggle {
 	display: none;
 	align-items: center;
@@ -932,6 +1538,21 @@ body {
 	.site-map-shell { width: min(100% - 36px, 1240px); }
 	.site-map-intro { max-width: 520px; }
 	.beauty-game { padding-right: 18px; padding-left: 18px; }
+	.account-intro {
+		align-items: flex-start;
+		flex-direction: column;
+	}
+	.account-code-grid,
+	.account-history-item dl {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+	.admin-header {
+		align-items: flex-start;
+		flex-direction: column;
+	}
+	.admin-actions {
+		grid-template-columns: 1fr;
+	}
 }
 
 @media (max-width: 480px) {
@@ -1007,6 +1628,77 @@ body {
 	.beauty-game-options {
 		grid-template-columns: 1fr;
 		gap: 10px;
+	}
+	.account-page {
+		padding: 42px 14px 66px;
+	}
+	.account-panel {
+		border-radius: 16px;
+		padding: 26px 18px;
+	}
+	.account-code-grid,
+	.account-history-item dl {
+		grid-template-columns: 1fr;
+	}
+	.account-auth-tabs {
+		grid-template-columns: 1fr;
+	}
+	.account-logout,
+	.account-button {
+		width: 100%;
+	}
+	.admin-login-page,
+	.admin-page {
+		padding: 18px 14px 44px;
+	}
+	.admin-login-panel,
+	.admin-panel {
+		border-radius: 16px;
+		padding: 24px 18px;
+	}
+	.admin-nav {
+		width: 100%;
+	}
+	.admin-nav a,
+	.admin-nav-form,
+	.admin-nav-form button {
+		width: 100%;
+		text-align: center;
+	}
+	.admin-table {
+		min-width: 0;
+	}
+	.admin-table thead {
+		display: none;
+	}
+	.admin-table,
+	.admin-table tbody,
+	.admin-table tr,
+	.admin-table td {
+		display: block;
+		width: 100%;
+	}
+	.admin-table tr {
+		padding: 14px 0;
+		border-bottom: 1px solid rgba(25, 90, 72, 0.18);
+	}
+	.admin-table td {
+		display: grid;
+		grid-template-columns: 118px minmax(0, 1fr);
+		gap: 12px;
+		padding: 8px 0;
+		border-bottom: 0;
+	}
+	.admin-table td::before {
+		content: attr(data-label);
+		color: var(--emerald);
+		font-size: 0.8rem;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+	}
+	.admin-small-button {
+		width: 100%;
 	}
 	.beauty-auth-dialog {
 		border-radius: 16px;

@@ -32,7 +32,7 @@ try {
 	require_once __DIR__ . '/../includes/auth.php';
 
 	$statement = $pdo->prepare(
-		'SELECT id, name, email, password_hash
+		'SELECT id, name, email, password_hash, role
 		 FROM users
 		 WHERE email = :email
 		 LIMIT 1'
@@ -40,7 +40,11 @@ try {
 	$statement->execute(['email' => $email]);
 	$user = $statement->fetch();
 
-	if ($user === false || !password_verify($password, (string) $user['password_hash'])) {
+	if (
+		$user === false
+		|| (string) $user['role'] !== 'customer'
+		|| !password_verify($password, (string) $user['password_hash'])
+	) {
 		sendJsonResponse(401, [
 			'success' => false,
 			'error' => 'Emailul sau parola nu este corectă.',

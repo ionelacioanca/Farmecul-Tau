@@ -67,6 +67,27 @@ function getActivePromoCodeForUser(PDO $pdo, int $userId): ?array
 	return formatPromoCodeResponse($promoCode);
 }
 
+function getPromoCodesForUser(PDO $pdo, int $userId): array
+{
+	expirePromoCodes($pdo, $userId);
+
+	$statement = $pdo->prepare(
+		"SELECT
+			pc.code,
+			pc.status,
+			pc.created_at,
+			pc.expires_at,
+			r.name AS reward_name
+		 FROM promo_codes pc
+		 INNER JOIN promo_rewards r ON r.id = pc.reward_id
+		 WHERE pc.user_id = :user_id
+		 ORDER BY pc.created_at DESC"
+	);
+	$statement->execute(['user_id' => $userId]);
+
+	return $statement->fetchAll();
+}
+
 function canUserClaimPromoReward(PDO $pdo, ?int $userId): bool
 {
 	if ($userId === null) {
