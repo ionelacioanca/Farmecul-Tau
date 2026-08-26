@@ -365,9 +365,36 @@ body {
 }
 
 .destination-card-offers .destination-visual {
-	background:
-		linear-gradient(0deg, rgba(198, 161, 91, 0.08), rgba(198, 161, 91, 0.08)),
-		repeating-linear-gradient(90deg, rgba(25, 90, 72, 0.07) 0, rgba(25, 90, 72, 0.07) 1px, transparent 1px, transparent 24px);
+	border-bottom: 0;
+	border-radius: 16px;
+	background: var(--emerald);
+	overflow: hidden;
+}
+
+.destination-card-offers {
+	border-radius: 16px;
+	overflow: hidden;
+}
+
+.destination-card-offers .destination-visual::after {
+	content: none;
+}
+
+.destination-offers-illustration {
+	display: block;
+	width: 100%;
+	height: 100%;
+	min-width: 0;
+	min-height: 0;
+	padding: clamp(18px, 2.6vw, 28px);
+	object-fit: contain;
+	object-position: center;
+	transition: transform 0.4s ease;
+}
+
+.destination-card-offers:hover .destination-offers-illustration,
+.destination-card-offers:focus-within .destination-offers-illustration {
+	transform: scale(1.03);
 }
 
 .destination-card-products .destination-visual {
@@ -420,6 +447,7 @@ body {
 }
 
 .destination-about-illustration {
+	display: block;
 	width: 100%;
 	height: 100%;
 	padding: clamp(18px, 2.6vw, 28px);

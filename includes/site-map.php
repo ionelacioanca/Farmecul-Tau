@@ -9,8 +9,8 @@
 		<div class="row g-4 g-xl-5 site-map-grid" role="list" aria-label="Destinații principale Farmecul Tău">
 			<div class="col-12 col-md-6 col-xl-4 d-flex" role="listitem">
 				<article class="destination-card destination-card-offers w-100" aria-labelledby="destination-offers-title">
-					<div class="destination-visual" aria-hidden="true">
-						<span class="destination-ink">Ballet</span>
+					<div class="destination-visual destination-visual-offers" aria-hidden="true">
+						<img class="destination-offers-illustration" src="images/oferte-home.png" alt="">
 					</div>
 					<div class="destination-content">
 						<h3 class="destination-title" id="destination-offers-title">OFERTE</h3>
