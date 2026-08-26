@@ -485,26 +485,6 @@ body {
 	text-align: center;
 }
 
-.beauty-game-title {
-	margin: 15px 0 0;
-	color: var(--black);
-	font-family: 'Cormorant Garamond', Georgia, serif;
-	font-size: clamp(2.25rem, 4.5vw, 3.5rem);
-	font-weight: 600;
-	letter-spacing: 0.12em;
-	line-height: 1.05;
-	text-transform: uppercase;
-}
-
-.beauty-game-title::after {
-	display: block;
-	width: 56px;
-	height: 1px;
-	margin: 18px auto 0;
-	background: var(--gold);
-	content: '';
-}
-
 .beauty-game-instructions {
 	max-width: 720px;
 	margin: 22px auto 0;
@@ -728,7 +708,13 @@ body {
 		margin-bottom: 34px;
 		padding: 0 12px;
 	}
-	.beauty-game-title { font-size: clamp(2rem, 9vw, 2.7rem); letter-spacing: 0.08em; }
+	.beauty-game-title {
+		gap: 8px;
+		font-size: 1.45rem;
+		letter-spacing: 0.14em;
+	}
+	.beauty-game-title::before,
+	.beauty-game-title::after { width: 28px; }
 	.beauty-game-instructions { font-size: 1.12rem; }
 	.beauty-game-panel {
 		padding: 58px 18px 38px;

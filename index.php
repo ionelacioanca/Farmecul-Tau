@@ -15,7 +15,7 @@
 	<section class="beauty-game" aria-labelledby="beauty-game-title">
 		<div class="beauty-game-shell">
 			<div class="beauty-game-heading">
-				<h2 class="beauty-game-title" id="beauty-game-title">SURPRIZE PROMOȚIONALE</h2>
+				<h2 class="site-map-kicker beauty-game-title" id="beauty-game-title">SURPRIZE PROMOȚIONALE</h2>
 				<p class="beauty-game-instructions">Alege autorul corect al citatului și poți primi un cod promoțional pentru următoarea ta vizită. Ai o singură alegere pentru fiecare citat.</p>
 			</div>
 
