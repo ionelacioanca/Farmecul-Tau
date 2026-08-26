@@ -461,6 +461,164 @@ body {
 	transform: scale(1.03);
 }
 
+.beauty-game {
+	position: relative;
+	padding: clamp(96px, 12vw, 156px) 24px clamp(96px, 12vw, 156px);
+	background:
+		radial-gradient(circle at 12% 22%, rgba(198, 161, 91, 0.1) 0 1px, transparent 1.5px),
+		var(--ivory);
+	background-size: 28px 28px, auto;
+}
+
+.beauty-game-shell {
+	width: min(100%, 1040px);
+	margin: 0 auto;
+}
+
+.beauty-game-heading {
+	position: relative;
+	z-index: 1;
+	max-width: 760px;
+	margin: 0 auto 44px;
+	padding: 0 20px;
+	background: var(--ivory);
+	text-align: center;
+}
+
+.beauty-game-title {
+	margin: 15px 0 0;
+	color: var(--black);
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: clamp(2.25rem, 4.5vw, 3.5rem);
+	font-weight: 600;
+	letter-spacing: 0.12em;
+	line-height: 1.05;
+	text-transform: uppercase;
+}
+
+.beauty-game-title::after {
+	display: block;
+	width: 56px;
+	height: 1px;
+	margin: 18px auto 0;
+	background: var(--gold);
+	content: '';
+}
+
+.beauty-game-instructions {
+	max-width: 720px;
+	margin: 22px auto 0;
+	color: rgba(17, 17, 17, 0.82);
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: clamp(1.08rem, 1.7vw, 1.28rem);
+	line-height: 1.55;
+}
+
+.beauty-game-panel {
+	position: relative;
+	padding: clamp(64px, 8vw, 96px) clamp(24px, 8vw, 100px) clamp(42px, 5vw, 60px);
+	border: 1px solid var(--gold);
+	background: var(--emerald);
+	box-shadow: 14px 14px 0 rgba(198, 161, 91, 0.2);
+	text-align: center;
+}
+
+.beauty-game-panel::before,
+.beauty-game-panel::after {
+	position: absolute;
+	width: 38px;
+	height: 38px;
+	border-color: rgba(255, 255, 240, 0.7);
+	content: '';
+}
+
+.beauty-game-panel::before {
+	top: 20px;
+	left: 20px;
+	border-top: 1px solid;
+	border-left: 1px solid;
+}
+
+.beauty-game-panel::after {
+	right: 20px;
+	bottom: 20px;
+	border-right: 1px solid;
+	border-bottom: 1px solid;
+}
+
+.beauty-game-quote {
+	max-width: 760px;
+	min-height: 4.2em;
+	margin: 0 auto clamp(34px, 5vw, 52px);
+	color: var(--ivory);
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: clamp(1.8rem, 3.5vw, 3rem);
+	font-weight: 500;
+	line-height: 1.2;
+}
+
+.beauty-game-options {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 14px;
+	max-width: 760px;
+	margin: 0 auto;
+}
+
+.beauty-game-option,
+.beauty-game-refresh {
+	min-height: 48px;
+	border: 1px solid var(--gold);
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: 1.15rem;
+	font-weight: 600;
+	line-height: 1.2;
+	cursor: pointer;
+	transition: background-color 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.beauty-game-option {
+	padding: 12px 16px;
+	background: var(--ivory);
+	color: var(--emerald);
+}
+
+.beauty-game-option:hover,
+.beauty-game-option:focus-visible,
+.beauty-game-option.is-selected {
+	background: var(--gold);
+	color: var(--black);
+	transform: translateY(-2px);
+}
+
+.beauty-game-refresh {
+	margin-top: clamp(34px, 5vw, 52px);
+	padding: 12px 26px;
+	background: transparent;
+	color: var(--ivory);
+	letter-spacing: 0.12em;
+}
+
+.beauty-game-refresh:hover,
+.beauty-game-refresh:focus-visible {
+	background: var(--gold);
+	color: var(--black);
+	transform: translateY(-2px);
+}
+
+.beauty-game-option:focus-visible,
+.beauty-game-refresh:focus-visible {
+	outline: 2px solid var(--ivory);
+	outline-offset: 4px;
+}
+
+.beauty-game-error {
+	margin: 28px 0 0;
+	color: var(--ivory);
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: 1.2rem;
+}
+
 .menu-toggle {
 	display: none;
 	align-items: center;
@@ -514,6 +672,7 @@ body {
 
 	.site-map-shell { width: min(100% - 36px, 1240px); }
 	.site-map-intro { max-width: 520px; }
+	.beauty-game { padding-right: 18px; padding-left: 18px; }
 }
 
 @media (max-width: 480px) {
@@ -561,5 +720,33 @@ body {
 	}
 	.destination-about-illustration {
 		padding: 16px;
+	}
+	.beauty-game {
+		padding: 76px 14px 92px;
+	}
+	.beauty-game-heading {
+		margin-bottom: 34px;
+		padding: 0 12px;
+	}
+	.beauty-game-title { font-size: clamp(2rem, 9vw, 2.7rem); letter-spacing: 0.08em; }
+	.beauty-game-instructions { font-size: 1.12rem; }
+	.beauty-game-panel {
+		padding: 58px 18px 38px;
+		box-shadow: 8px 8px 0 rgba(198, 161, 91, 0.2);
+	}
+	.beauty-game-panel::before,
+	.beauty-game-panel::after {
+		width: 24px;
+		height: 24px;
+	}
+	.beauty-game-panel::before { top: 14px; left: 14px; }
+	.beauty-game-panel::after { right: 14px; bottom: 14px; }
+	.beauty-game-quote {
+		min-height: 0;
+		font-size: clamp(1.7rem, 8vw, 2.35rem);
+	}
+	.beauty-game-options {
+		grid-template-columns: 1fr;
+		gap: 10px;
 	}
 }
