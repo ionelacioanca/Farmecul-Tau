@@ -463,11 +463,9 @@ body {
 
 .beauty-game {
 	position: relative;
+	margin-top: clamp(-220px, -17vw, -140px);
 	padding: clamp(96px, 12vw, 156px) 24px clamp(96px, 12vw, 156px);
-	background:
-		radial-gradient(circle at 12% 22%, rgba(198, 161, 91, 0.1) 0 1px, transparent 1.5px),
-		var(--ivory);
-	background-size: 28px 28px, auto;
+	background: transparent;
 }
 
 .beauty-game-shell {
@@ -702,6 +700,7 @@ body {
 		padding: 16px;
 	}
 	.beauty-game {
+		margin-top: -106px;
 		padding: 76px 14px 92px;
 	}
 	.beauty-game-heading {
