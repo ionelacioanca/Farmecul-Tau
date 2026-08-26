@@ -495,33 +495,17 @@ body {
 .beauty-game-panel {
 	position: relative;
 	padding: clamp(64px, 8vw, 96px) clamp(24px, 8vw, 100px) clamp(42px, 5vw, 60px);
-	border: 1px solid var(--gold);
+	border: 0;
+	border-radius: 18px;
 	background: var(--emerald);
-	box-shadow: 14px 14px 0 rgba(198, 161, 91, 0.2);
+	box-shadow: 0 16px 24px rgba(17, 17, 17, 0.14);
 	text-align: center;
 }
 
 .beauty-game-panel::before,
 .beauty-game-panel::after {
-	position: absolute;
-	width: 38px;
-	height: 38px;
-	border-color: rgba(255, 255, 240, 0.7);
 	content: '';
-}
-
-.beauty-game-panel::before {
-	top: 20px;
-	left: 20px;
-	border-top: 1px solid;
-	border-left: 1px solid;
-}
-
-.beauty-game-panel::after {
-	right: 20px;
-	bottom: 20px;
-	border-right: 1px solid;
-	border-bottom: 1px solid;
+	display: none;
 }
 
 .beauty-game-quote {
@@ -558,29 +542,45 @@ body {
 .beauty-game-option {
 	padding: 12px 16px;
 	background: var(--ivory);
-	color: var(--emerald);
+	color: var(--gold);
 }
 
 .beauty-game-option:hover,
 .beauty-game-option:focus-visible,
 .beauty-game-option.is-selected {
 	background: var(--gold);
-	color: var(--black);
+	color: var(--emerald);
 	transform: translateY(-2px);
+}
+
+.beauty-game-option:disabled {
+	cursor: default;
+	opacity: 0.72;
+	transform: none;
+}
+
+.beauty-game-option.is-selected:disabled {
+	opacity: 1;
+}
+
+.beauty-game-option:disabled:not(.is-selected) {
+	background: var(--ivory);
+	color: var(--gold);
 }
 
 .beauty-game-refresh {
 	margin-top: clamp(34px, 5vw, 52px);
 	padding: 12px 26px;
 	background: transparent;
+	border-color: var(--ivory);
 	color: var(--ivory);
 	letter-spacing: 0.12em;
 }
 
 .beauty-game-refresh:hover,
 .beauty-game-refresh:focus-visible {
-	background: var(--gold);
-	color: var(--black);
+	background: var(--ivory);
+	color: var(--emerald);
 	transform: translateY(-2px);
 }
 
@@ -595,6 +595,287 @@ body {
 	color: var(--ivory);
 	font-family: 'Cormorant Garamond', Georgia, serif;
 	font-size: 1.2rem;
+}
+
+.beauty-game-reward {
+	max-width: 620px;
+	margin: 34px auto 0;
+	padding: clamp(26px, 4vw, 38px);
+	border: 1px solid rgba(198, 161, 91, 0.72);
+	border-radius: 16px;
+	background: var(--black);
+	color: var(--ivory);
+	font-family: 'Cormorant Garamond', Georgia, serif;
+}
+
+.beauty-game-reward-success,
+.beauty-game-reward-title,
+.beauty-game-reward-validity,
+.beauty-game-claim-note {
+	margin: 0;
+}
+
+.beauty-game-reward-success {
+	color: var(--ivory);
+	font-size: 0.88rem;
+	font-weight: 600;
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+}
+
+.beauty-game-reward-title {
+	margin-top: 10px;
+	color: var(--gold);
+	font-size: 1.08rem;
+	font-weight: 600;
+	letter-spacing: 0.16em;
+	text-transform: uppercase;
+}
+
+.beauty-game-reward-name {
+	margin: 18px 0 0;
+	color: var(--ivory);
+	font-size: clamp(1.55rem, 3vw, 2.2rem);
+	font-weight: 600;
+	line-height: 1.1;
+}
+
+.beauty-game-reward-description {
+	max-width: 42ch;
+	margin: 14px auto 0;
+	color: rgba(255, 255, 240, 0.86);
+	font-size: 1.18rem;
+	line-height: 1.45;
+}
+
+.beauty-game-reward-validity {
+	margin-top: 16px;
+	color: var(--gold);
+	font-size: 1rem;
+	font-weight: 600;
+}
+
+.beauty-game-claim {
+	min-height: 46px;
+	margin-top: 24px;
+	padding: 12px 22px;
+	border: 1px solid var(--gold);
+	background: transparent;
+	color: var(--gold);
+	cursor: pointer;
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: 0.96rem;
+	font-weight: 600;
+	letter-spacing: 0.12em;
+	line-height: 1.2;
+	transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
+.beauty-game-claim:hover,
+.beauty-game-claim:focus-visible {
+	border-color: var(--gold);
+	background: var(--gold);
+	color: var(--black);
+}
+
+.beauty-game-claim:focus-visible {
+	outline: 2px solid var(--ivory);
+	outline-offset: 4px;
+}
+
+.beauty-game-claim-note {
+	margin-top: 16px;
+	color: rgba(255, 255, 240, 0.72);
+	font-size: 1rem;
+}
+
+.beauty-game-code-label {
+	margin: 24px 0 8px;
+	color: var(--gold);
+	font-size: 0.92rem;
+	font-weight: 600;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+}
+
+.beauty-game-code {
+	display: inline-flex;
+	justify-content: center;
+	min-width: min(100%, 260px);
+	margin: 0;
+	padding: 14px 20px;
+	border: 1px solid rgba(198, 161, 91, 0.72);
+	color: var(--ivory);
+	font-size: clamp(1.7rem, 4vw, 2.35rem);
+	font-weight: 600;
+	letter-spacing: 0.08em;
+	line-height: 1;
+}
+
+.beauty-auth-modal {
+	position: fixed;
+	inset: 0;
+	z-index: 30;
+	display: grid;
+	place-items: center;
+	padding: 22px;
+}
+
+.beauty-auth-modal[hidden] {
+	display: none;
+}
+
+.beauty-auth-backdrop {
+	position: absolute;
+	inset: 0;
+	background: rgba(17, 17, 17, 0.62);
+}
+
+.beauty-auth-dialog {
+	position: relative;
+	width: min(100%, 520px);
+	max-height: min(88vh, 760px);
+	overflow: auto;
+	padding: clamp(30px, 5vw, 46px);
+	border: 1px solid rgba(198, 161, 91, 0.74);
+	border-radius: 18px;
+	background: var(--black);
+	color: var(--ivory);
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	box-shadow: 0 18px 28px rgba(17, 17, 17, 0.18);
+}
+
+.beauty-auth-close {
+	position: absolute;
+	top: 14px;
+	right: 16px;
+	width: 36px;
+	height: 36px;
+	border: 1px solid rgba(255, 255, 240, 0.28);
+	border-radius: 50%;
+	background: transparent;
+	color: var(--ivory);
+	cursor: pointer;
+	font-size: 1.45rem;
+	line-height: 1;
+}
+
+.beauty-auth-kicker,
+.beauty-auth-text,
+.beauty-auth-message {
+	margin: 0;
+}
+
+.beauty-auth-kicker {
+	color: var(--gold);
+	font-size: 0.88rem;
+	font-weight: 600;
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+}
+
+.beauty-auth-title {
+	margin: 12px 0 0;
+	color: var(--ivory);
+	font-size: clamp(1.75rem, 4vw, 2.45rem);
+	font-weight: 600;
+	line-height: 1.08;
+}
+
+.beauty-auth-text {
+	margin-top: 14px;
+	color: rgba(255, 255, 240, 0.82);
+	font-size: 1.15rem;
+	line-height: 1.45;
+}
+
+.beauty-auth-tabs {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 8px;
+	margin-top: 28px;
+}
+
+.beauty-auth-tab,
+.beauty-auth-submit {
+	min-height: 46px;
+	border: 1px solid var(--gold);
+	cursor: pointer;
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-weight: 600;
+	letter-spacing: 0.1em;
+	line-height: 1.15;
+	text-transform: uppercase;
+	transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease;
+}
+
+.beauty-auth-tab {
+	padding: 10px 12px;
+	background: transparent;
+	color: var(--gold);
+	font-size: 0.92rem;
+}
+
+.beauty-auth-tab.is-active,
+.beauty-auth-tab:hover,
+.beauty-auth-tab:focus-visible,
+.beauty-auth-submit:hover,
+.beauty-auth-submit:focus-visible {
+	background: var(--gold);
+	color: var(--black);
+}
+
+.beauty-auth-form {
+	display: grid;
+	gap: 16px;
+	margin-top: 24px;
+}
+
+.beauty-auth-form[hidden] {
+	display: none;
+}
+
+.beauty-auth-form label {
+	display: grid;
+	gap: 7px;
+	margin: 0;
+	color: rgba(255, 255, 240, 0.86);
+	font-size: 1rem;
+}
+
+.beauty-auth-form input {
+	width: 100%;
+	min-height: 46px;
+	border: 1px solid rgba(255, 255, 240, 0.28);
+	border-radius: 10px;
+	background: rgba(255, 255, 240, 0.08);
+	color: var(--ivory);
+	font: inherit;
+	padding: 10px 13px;
+}
+
+.beauty-auth-form input:focus-visible,
+.beauty-auth-close:focus-visible {
+	outline: 2px solid var(--gold);
+	outline-offset: 3px;
+}
+
+.beauty-auth-submit {
+	margin-top: 4px;
+	background: var(--ivory);
+	color: var(--black);
+	font-size: 0.96rem;
+}
+
+.beauty-auth-submit:disabled {
+	cursor: default;
+	opacity: 0.64;
+}
+
+.beauty-auth-message {
+	color: var(--gold);
+	font-size: 1.02rem;
+	line-height: 1.35;
 }
 
 .menu-toggle {
@@ -717,15 +998,8 @@ body {
 	.beauty-game-instructions { font-size: 1.12rem; }
 	.beauty-game-panel {
 		padding: 58px 18px 38px;
-		box-shadow: 8px 8px 0 rgba(198, 161, 91, 0.2);
+		border-radius: 14px;
 	}
-	.beauty-game-panel::before,
-	.beauty-game-panel::after {
-		width: 24px;
-		height: 24px;
-	}
-	.beauty-game-panel::before { top: 14px; left: 14px; }
-	.beauty-game-panel::after { right: 14px; bottom: 14px; }
 	.beauty-game-quote {
 		min-height: 0;
 		font-size: clamp(1.7rem, 8vw, 2.35rem);
@@ -733,5 +1007,12 @@ body {
 	.beauty-game-options {
 		grid-template-columns: 1fr;
 		gap: 10px;
+	}
+	.beauty-auth-dialog {
+		border-radius: 16px;
+		padding: 30px 20px;
+	}
+	.beauty-auth-tabs {
+		grid-template-columns: 1fr;
 	}
 }

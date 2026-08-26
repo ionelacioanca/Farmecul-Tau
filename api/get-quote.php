@@ -16,9 +16,10 @@ try {
 	require_once __DIR__ . '/../includes/db.php';
 
 	$statement = $pdo->query(
-		'SELECT id, quote_text, author, wrong_author_1, wrong_author_2
-		 FROM beauty_quotes
-		 WHERE active = 1
+		'SELECT q.id, q.quote_text, q.author, q.wrong_author_1, q.wrong_author_2
+		 FROM beauty_quotes q
+		 INNER JOIN promo_rewards r ON r.id = q.reward_id AND r.active = 1
+		 WHERE q.active = 1
 		 ORDER BY RAND()
 		 LIMIT 1'
 	);
