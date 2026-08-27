@@ -7,14 +7,12 @@ require_once __DIR__ . '/../includes/admin-ui.php';
 require_once __DIR__ . '/../includes/booking.php';
 
 setSalonTimezone();
-$dashboardUser = requireAdminUser($pdo);
+$dashboardUser = requireDashboardUser($pdo);
 $currentSpecialist = getCurrentSpecialist($pdo, $dashboardUser);
-
 $csrfToken = getAdminCsrfToken();
 $message = '';
 $errors = [];
 $values = [
-	'specialist_id' => '',
 	'start_date' => '',
 	'start_time' => '',
 	'end_date' => '',
@@ -23,17 +21,13 @@ $values = [
 	'reason' => '',
 ];
 
-$specialistStatement = $pdo->prepare(
-	'SELECT id, name
-	 FROM specialists
-	 WHERE active = 1
-	 ORDER BY name ASC'
-);
-$specialistStatement->execute();
-$specialists = $specialistStatement->fetchAll();
+if ($currentSpecialist === null) {
+	$errors[] = 'Contul tau nu este legat de un specialist activ.';
+}
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($currentSpecialist !== null && $_SERVER['REQUEST_METHOD'] === 'POST') {
 	$action = isset($_POST['action']) ? (string) $_POST['action'] : 'create';
+	$specialistId = (int) $currentSpecialist['id'];
 
 	if ($action === 'delete') {
 		$blockedSlotId = filter_var($_POST['blocked_slot_id'] ?? null, FILTER_VALIDATE_INT, [
@@ -41,16 +35,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		]);
 
 		if (!verifyAdminCsrfToken(isset($_POST['csrf_token']) ? (string) $_POST['csrf_token'] : null)) {
-			$errors[] = 'Sesiunea a expirat. ReÃ®ncarcÄƒ pagina È™i Ã®ncearcÄƒ din nou.';
+			$errors[] = 'Sesiunea a expirat. Reincarca pagina si incearca din nou.';
 		} elseif ($blockedSlotId === false) {
 			$errors[] = 'Intervalul blocat nu a putut fi identificat.';
 		} else {
 			$deleteStatement = $pdo->prepare(
 				'DELETE FROM blocked_slots
 				 WHERE id = :id
+					AND specialist_id = :specialist_id
 					AND end_datetime >= NOW()'
 			);
-			$deleteStatement->execute(['id' => $blockedSlotId]);
+			$deleteStatement->execute([
+				'id' => $blockedSlotId,
+				'specialist_id' => $specialistId,
+			]);
 			$message = $deleteStatement->rowCount() === 1
 				? 'Intervalul a fost deblocat.'
 				: 'Intervalul nu a mai putut fi deblocat.';
@@ -59,7 +57,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 	if ($action === 'create') {
 	$values = array_merge($values, [
-		'specialist_id' => isset($_POST['specialist_id']) ? (string) $_POST['specialist_id'] : '',
 		'start_date' => isset($_POST['start_date']) ? trim((string) $_POST['start_date']) : '',
 		'start_time' => isset($_POST['start_time']) ? trim((string) $_POST['start_time']) : '',
 		'end_date' => isset($_POST['end_date']) ? trim((string) $_POST['end_date']) : '',
@@ -68,9 +65,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		'reason' => isset($_POST['reason']) ? trim((string) $_POST['reason']) : '',
 	]);
 
-	$specialistId = filter_var($values['specialist_id'], FILTER_VALIDATE_INT, [
-		'options' => ['min_range' => 1],
-	]);
 	$startDate = $values['start_date'] !== '' ? parseBookingDate($values['start_date']) : null;
 	$endDate = $values['end_date'] !== '' ? parseBookingDate($values['end_date']) : null;
 	$isAllDay = $values['all_day'] === '1';
@@ -86,38 +80,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	}
 
 	if (!verifyAdminCsrfToken(isset($_POST['csrf_token']) ? (string) $_POST['csrf_token'] : null)) {
-		$errors[] = 'Sesiunea a expirat. Reîncarcă pagina și încearcă din nou.';
-	}
-
-	if ($specialistId === false) {
-		$errors[] = 'Alege un specialist valid.';
+		$errors[] = 'Sesiunea a expirat. Reincarca pagina si incearca din nou.';
 	}
 
 	if ($startDateTime === null || $endDateTime === null) {
-		$errors[] = 'Alege date și ore valide.';
+		$errors[] = 'Alege date si ore valide.';
 	} elseif ($endDateTime <= $startDateTime) {
-		$errors[] = 'Ora de final trebuie să fie după ora de început.';
+		$errors[] = 'Ora de final trebuie sa fie dupa ora de inceput.';
 	} elseif (($isAllDay ? $endDateTime : $startDateTime) <= new DateTimeImmutable('now', getSalonTimezone())) {
-		$errors[] = 'Nu poți bloca un interval din trecut.';
+		$errors[] = 'Nu poti bloca un interval din trecut.';
 	}
 
 	if (strlen($values['reason']) > 255) {
 		$errors[] = 'Motivul poate avea maximum 255 de caractere.';
-	}
-
-	if ($errors === []) {
-		$specialistExists = false;
-
-		foreach ($specialists as $specialist) {
-			if ((int) $specialist['id'] === $specialistId) {
-				$specialistExists = true;
-				break;
-			}
-		}
-
-		if (!$specialistExists) {
-			$errors[] = 'Specialistul nu este disponibil.';
-		}
 	}
 
 	if ($errors === []) {
@@ -149,7 +124,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 					$pdo->commit();
 					$message = 'Intervalul a fost blocat.';
 					$values = [
-						'specialist_id' => '',
 						'start_date' => '',
 						'start_time' => '',
 						'end_date' => '',
@@ -164,14 +138,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 				$pdo->rollBack();
 			}
 
-			error_log('Farmecul Tau admin block slot failed: ' . $exception->getMessage());
+			error_log('Farmecul Tau specialist block slot failed: ' . $exception->getMessage());
 			$errors[] = 'Intervalul nu a putut fi blocat.';
 		} finally {
 			if ($lockAcquired) {
 				try {
 					releaseBookingLock($pdo, $lockName);
 				} catch (Throwable $releaseException) {
-					error_log('Farmecul Tau admin blocked slot lock release failed: ' . $releaseException->getMessage());
+					error_log('Farmecul Tau specialist blocked slot lock release failed: ' . $releaseException->getMessage());
 				}
 			}
 		}
@@ -179,42 +153,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	}
 }
 
-$blockedStatement = $pdo->prepare(
-	'SELECT
-		b.id,
-		b.start_datetime,
-		b.end_datetime,
-		b.reason,
-		b.created_at,
-		sp.name AS specialist_name
-	 FROM blocked_slots b
-	 INNER JOIN specialists sp ON sp.id = b.specialist_id
-	 WHERE b.end_datetime >= NOW()
-	 ORDER BY b.start_datetime ASC
-	 LIMIT 80'
-);
-$blockedStatement->execute();
-$blockedSlots = $blockedStatement->fetchAll();
+$blockedSlots = [];
+
+if ($currentSpecialist !== null) {
+	$blockedStatement = $pdo->prepare(
+		'SELECT id, start_datetime, end_datetime, reason, created_at
+		 FROM blocked_slots
+		 WHERE specialist_id = :specialist_id
+			AND end_datetime >= NOW()
+		 ORDER BY start_datetime ASC
+		 LIMIT 80'
+	);
+	$blockedStatement->execute(['specialist_id' => (int) $currentSpecialist['id']]);
+	$blockedSlots = $blockedStatement->fetchAll();
+}
 ?>
 <!DOCTYPE html>
 <html lang="ro">
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Timp blocat | Farmecul Tău</title>
+	<title>Timpul meu blocat | Farmecul Tau</title>
 	<link rel="stylesheet" href="../css/style.css?v=20260827-4">
 </head>
 <body>
-	<?php renderAdminHeader('Timp blocat', 'blocked-slots.php', $csrfToken); ?>
+	<?php renderAdminHeader('Timpul meu blocat', 'my-blocked-slots.php', $csrfToken, $dashboardUser, $currentSpecialist); ?>
 
 	<main class="admin-page">
 		<section class="admin-panel">
 			<div class="admin-panel-head">
 				<div>
-					<p class="admin-kicker">BLOCARE</p>
+					<p class="admin-kicker">AGENDA MEA</p>
 					<h2 class="admin-section-title">Interval indisponibil</h2>
 				</div>
-				<a class="admin-reset-link" href="appointments.php">Înapoi la programări</a>
+				<a class="admin-reset-link" href="my-appointments.php">Inapoi la programarile mele</a>
 			</div>
 
 			<?php if ($message !== ''): ?>
@@ -228,65 +200,55 @@ $blockedSlots = $blockedStatement->fetchAll();
 				</div>
 			<?php endif; ?>
 
-			<form class="admin-form admin-form-grid" method="post" action="blocked-slots.php" data-block-slot-form>
-				<label class="admin-checkbox-label admin-form-wide">
-					<input type="checkbox" name="all_day" value="1" data-all-day-toggle <?php echo $values['all_day'] === '1' ? 'checked' : ''; ?>>
-					<span>Blocheaza zile intregi sau o perioada lunga</span>
-				</label>
-				<label>
-					<span>Specialist</span>
-					<select name="specialist_id" required>
-						<option value="">Alege specialistul</option>
-						<?php foreach ($specialists as $specialist): ?>
-							<option value="<?php echo (int) $specialist['id']; ?>" <?php echo $values['specialist_id'] === (string) $specialist['id'] ? 'selected' : ''; ?>>
-								<?php echo adminEscape((string) $specialist['name']); ?>
-							</option>
-						<?php endforeach; ?>
-					</select>
-				</label>
-				<label>
-					<span>Data început</span>
-					<input type="date" name="start_date" value="<?php echo adminEscape($values['start_date']); ?>" required>
-				</label>
-				<label data-time-field <?php echo $values['all_day'] === '1' ? 'hidden' : ''; ?>>
-					<span>Ora inceput</span>
-					<input type="time" name="start_time" step="1800" value="<?php echo adminEscape($values['start_time']); ?>" data-time-input <?php echo $values['all_day'] === '1' ? '' : 'required'; ?>>
-				</label>
-				<label>
-					<span>Data final inclusiv</span>
-					<input type="date" name="end_date" value="<?php echo adminEscape($values['end_date']); ?>" required>
-				</label>
-				<label data-time-field <?php echo $values['all_day'] === '1' ? 'hidden' : ''; ?>>
-					<span>Ora final</span>
-					<input type="time" name="end_time" step="1800" value="<?php echo adminEscape($values['end_time']); ?>" data-time-input <?php echo $values['all_day'] === '1' ? '' : 'required'; ?>>
-				</label>
-				<label class="admin-form-wide">
-					<span>Motiv</span>
-					<input type="text" name="reason" maxlength="255" value="<?php echo adminEscape($values['reason']); ?>" placeholder="Lunch, training, holiday...">
-				</label>
-				<input type="hidden" name="action" value="create">
-				<input type="hidden" name="csrf_token" value="<?php echo adminEscape($csrfToken); ?>">
-				<button class="admin-button admin-form-wide" type="submit">Blochează intervalul</button>
-			</form>
+			<?php if ($currentSpecialist !== null): ?>
+				<form class="admin-form admin-form-grid" method="post" action="my-blocked-slots.php" data-block-slot-form>
+					<label class="admin-checkbox-label admin-form-wide">
+						<input type="checkbox" name="all_day" value="1" data-all-day-toggle <?php echo $values['all_day'] === '1' ? 'checked' : ''; ?>>
+						<span>Blocheaza zile intregi sau o perioada lunga</span>
+					</label>
+					<label>
+						<span>Data inceput</span>
+						<input type="date" name="start_date" value="<?php echo adminEscape($values['start_date']); ?>" required>
+					</label>
+					<label data-time-field <?php echo $values['all_day'] === '1' ? 'hidden' : ''; ?>>
+						<span>Ora inceput</span>
+						<input type="time" name="start_time" step="1800" value="<?php echo adminEscape($values['start_time']); ?>" data-time-input <?php echo $values['all_day'] === '1' ? '' : 'required'; ?>>
+					</label>
+					<label>
+						<span>Data final inclusiv</span>
+						<input type="date" name="end_date" value="<?php echo adminEscape($values['end_date']); ?>" required>
+					</label>
+					<label data-time-field <?php echo $values['all_day'] === '1' ? 'hidden' : ''; ?>>
+						<span>Ora final</span>
+						<input type="time" name="end_time" step="1800" value="<?php echo adminEscape($values['end_time']); ?>" data-time-input <?php echo $values['all_day'] === '1' ? '' : 'required'; ?>>
+					</label>
+					<label class="admin-form-wide">
+						<span>Motiv</span>
+						<input type="text" name="reason" maxlength="255" value="<?php echo adminEscape($values['reason']); ?>" placeholder="Pauza, training, concediu...">
+					</label>
+					<input type="hidden" name="action" value="create">
+					<input type="hidden" name="csrf_token" value="<?php echo adminEscape($csrfToken); ?>">
+					<button class="admin-button admin-form-wide" type="submit">Blocheaza intervalul</button>
+				</form>
+			<?php endif; ?>
 		</section>
 
 		<section class="admin-panel admin-panel-spaced">
 			<div class="admin-panel-head">
 				<div>
-					<p class="admin-kicker">LISTĂ</p>
-					<h2 class="admin-section-title">Intervale viitoare blocate</h2>
+					<p class="admin-kicker">LISTA</p>
+					<h2 class="admin-section-title">Intervalele mele blocate</h2>
 				</div>
 			</div>
 
 			<?php if ($blockedSlots === []): ?>
-				<p class="admin-empty">Nu există intervale viitoare blocate.</p>
+				<p class="admin-empty">Nu exista intervale viitoare blocate.</p>
 			<?php else: ?>
 				<div class="admin-table-wrap">
 					<table class="admin-table">
 						<thead>
 							<tr>
 								<th>ID</th>
-								<th>Specialist</th>
 								<th>Start</th>
 								<th>End</th>
 								<th>Motiv</th>
@@ -298,13 +260,12 @@ $blockedSlots = $blockedStatement->fetchAll();
 							<?php foreach ($blockedSlots as $blockedSlot): ?>
 								<tr>
 									<td data-label="ID">#<?php echo (int) $blockedSlot['id']; ?></td>
-									<td data-label="Specialist"><?php echo adminEscape((string) $blockedSlot['specialist_name']); ?></td>
 									<td data-label="Start"><?php echo adminEscape(adminFormatDate((string) $blockedSlot['start_datetime'])); ?></td>
 									<td data-label="End"><?php echo adminEscape(adminFormatDate((string) $blockedSlot['end_datetime'])); ?></td>
 									<td data-label="Motiv"><?php echo adminEscape((string) ($blockedSlot['reason'] ?? '-')); ?></td>
 									<td data-label="Creat"><?php echo adminEscape(adminFormatDate((string) $blockedSlot['created_at'])); ?></td>
 									<td data-label="Actiune">
-										<form method="post" action="blocked-slots.php" onsubmit="return confirm('Deblochezi acest interval?');">
+										<form method="post" action="my-blocked-slots.php" onsubmit="return confirm('Deblochezi acest interval?');">
 											<input type="hidden" name="action" value="delete">
 											<input type="hidden" name="blocked_slot_id" value="<?php echo (int) $blockedSlot['id']; ?>">
 											<input type="hidden" name="csrf_token" value="<?php echo adminEscape($csrfToken); ?>">

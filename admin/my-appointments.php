@@ -270,6 +270,12 @@ $currentPath = 'my-appointments.php' . $currentQuery;
 					<p class="admin-kicker">LISTA</p>
 					<h2 class="admin-section-title">Programarile mele</h2>
 				</div>
+				<?php if ($currentSpecialist !== null): ?>
+					<div class="admin-inline-actions">
+						<a class="admin-button admin-link-button" href="my-create-appointment.php">Programare externa</a>
+						<a class="admin-button admin-link-button" href="my-blocked-slots.php">Blocheaza timp</a>
+					</div>
+				<?php endif; ?>
 			</div>
 
 			<?php if ($message !== ''): ?>

@@ -1402,6 +1402,7 @@ body {
 }
 
 .admin-form .admin-checkbox-label[hidden],
+.admin-form label[hidden],
 .admin-form [data-services-fieldset][hidden] {
 	display: none !important;
 }

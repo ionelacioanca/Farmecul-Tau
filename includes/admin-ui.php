@@ -57,6 +57,11 @@ function renderAdminHeader(string $title, string $activeRoute, string $csrfToken
 		$navigation['my-appointments.php'] = 'Programarile mele';
 	}
 
+	if ($currentSpecialist !== null) {
+		$navigation['my-create-appointment.php'] = 'Programare externa';
+		$navigation['my-blocked-slots.php'] = 'Timpul meu blocat';
+	}
+
 	if ($role === 'admin') {
 		$navigation += [
 			'appointments.php' => 'Toate programarile',
