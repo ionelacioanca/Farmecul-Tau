@@ -102,9 +102,17 @@ if (adminManualBooking) {
 				specialistSelect.append(option);
 			});
 
+			if (!selectedSpecialist && data.specialists.length === 1) {
+				specialistSelect.value = String(data.specialists[0].id);
+			}
+
 			specialistSelect.disabled = data.specialists.length === 0;
 			specialistSelect.dataset.selectedValue = '';
 			setStatus(data.specialists.length ? 'Alege data și ora.' : 'Nu există specialiști pentru serviciul ales.');
+
+			if (!selectedSpecialist && data.specialists.length === 1) {
+				setStatus('Specialistul a fost selectat automat. Alege data si ora.');
+			}
 
 			if (specialistSelect.value) {
 				await loadAvailability();

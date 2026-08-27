@@ -300,6 +300,6 @@ $services = $serviceStatement->fetchAll();
 		</section>
 	</main>
 
-	<script src="../js/admin-appointment-form.js?v=20260826-1"></script>
+	<script src="../js/admin-appointment-form.js?v=20260827-1"></script>
 </body>
 </html>

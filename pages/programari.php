@@ -98,6 +98,6 @@
 	</main>
 
 	<script src="../js/script.js"></script>
-	<script src="../js/booking-availability.js?v=20260826-2"></script>
+	<script src="../js/booking-availability.js?v=20260827-1"></script>
 </body>
 </html>

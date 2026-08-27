@@ -227,7 +227,18 @@ if (bookingAvailability) {
 				specialistSelect.append(new Option(specialist.name, specialist.id));
 			});
 
-			specialistSelect.disabled = data.specialists.length === 0;
+			if (data.specialists.length === 1) {
+				specialistSelect.value = String(data.specialists[0].id);
+			}
+
+			specialistSelect.disabled = data.specialists.length <= 1;
+			if (data.specialists.length === 0) {
+				setStatus('Momentan nu exista specialisti disponibili pentru acest serviciu.');
+				return;
+			} else if (data.specialists.length === 1) {
+				setStatus('Specialistul a fost selectat automat. Alege data.');
+				return;
+			}
 			setStatus(data.specialists.length ? 'Alege specialistul și data.' : 'Nu există specialiști disponibili pentru acest serviciu.');
 		} catch (error) {
 			resetSpecialists('Specialiștii nu au putut fi încărcați');
@@ -333,7 +344,10 @@ if (bookingAvailability) {
 
 	serviceSelect.addEventListener('change', async () => {
 		await loadSpecialists();
-		await loadAvailability();
+
+		if (specialistSelect.value) {
+			await loadAvailability();
+		}
 	});
 	specialistSelect.addEventListener('change', loadAvailability);
 	dateInput.addEventListener('change', loadAvailability);
