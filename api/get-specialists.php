@@ -35,7 +35,7 @@ try {
 
 	if ($serviceId !== null) {
 		$serviceStatement = $pdo->prepare(
-			'SELECT id
+			'SELECT id, category
 			 FROM services
 			 WHERE id = :service_id AND active = 1
 			 LIMIT 1'
@@ -50,17 +50,23 @@ try {
 		}
 
 		$statement = $pdo->prepare(
-			'SELECT DISTINCT sp.id, sp.name, sp.email, sp.phone
+			'SELECT DISTINCT sp.id, sp.name
 			 FROM specialists sp
 			 INNER JOIN specialist_services ss ON ss.specialist_id = sp.id
+			 INNER JOIN services sv ON sv.id = ss.service_id
 			 WHERE sp.active = 1
-				AND ss.service_id = :service_id
+				AND sv.active = 1
+				AND sv.id = :service_id
+				AND sp.specialization = CASE sv.category
+					WHEN \'hairstyle\' THEN \'hairstylist\'
+					WHEN \'nails\' THEN \'nails\'
+				END
 			 ORDER BY sp.name ASC'
 		);
 		$statement->execute(['service_id' => $serviceId]);
 	} else {
 		$statement = $pdo->prepare(
-			'SELECT id, name, email, phone
+			'SELECT id, name
 			 FROM specialists
 			 WHERE active = 1
 			 ORDER BY name ASC'
@@ -72,8 +78,6 @@ try {
 		static fn (array $specialist): array => [
 			'id' => (int) $specialist['id'],
 			'name' => (string) $specialist['name'],
-			'email' => $specialist['email'] !== null ? (string) $specialist['email'] : null,
-			'phone' => $specialist['phone'] !== null ? (string) $specialist['phone'] : null,
 		],
 		$statement->fetchAll()
 	);

@@ -2,11 +2,35 @@ CREATE TABLE IF NOT EXISTS services (
 	id INT AUTO_INCREMENT PRIMARY KEY,
 	name VARCHAR(150) NOT NULL,
 	description TEXT NULL,
+	category ENUM('hairstyle', 'nails') NOT NULL,
 	duration_minutes INT NOT NULL,
 	price DECIMAL(10,2) NULL,
 	active TINYINT(1) DEFAULT 1,
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE services
+	ADD COLUMN IF NOT EXISTS category ENUM('hairstyle', 'nails') NULL
+	AFTER description;
+
+UPDATE services
+SET category = 'hairstyle'
+WHERE name IN ('[DEV] Tuns', '[DEV] Coafat', '[DEV] Vopsit');
+
+UPDATE services
+SET category = 'nails'
+WHERE name IN ('[DEV] Manichiură', '[DEV] ManichiurÄƒ', '[DEV] Manichiur?', '[DEV] Pedichiură', '[DEV] PedichiurÄƒ', '[DEV] Pedichiur?');
+
+UPDATE services
+SET category = 'nails'
+WHERE id IN (4, 5)
+	AND (category IS NULL OR category = '');
+
+ALTER TABLE services
+	MODIFY category ENUM('hairstyle', 'nails') NOT NULL;
+
+ALTER TABLE services
+	ADD INDEX IF NOT EXISTS idx_services_category_active (category, active);
 
 CREATE TABLE IF NOT EXISTS specialists (
 	id INT AUTO_INCREMENT PRIMARY KEY,
@@ -153,24 +177,24 @@ ALTER TABLE appointments
 ALTER TABLE appointments
 	MODIFY customer_email VARCHAR(255) NULL;
 
-INSERT INTO services (name, description, duration_minutes, price, active)
-SELECT '[DEV] Tuns', 'Serviciu exemplu pentru dezvoltarea sistemului de programări.', 45, NULL, 1
+INSERT INTO services (name, description, category, duration_minutes, price, active)
+SELECT '[DEV] Tuns', 'Serviciu exemplu pentru dezvoltarea sistemului de programări.', 'hairstyle', 45, NULL, 1
 WHERE NOT EXISTS (SELECT 1 FROM services WHERE name = '[DEV] Tuns');
 
-INSERT INTO services (name, description, duration_minutes, price, active)
-SELECT '[DEV] Coafat', 'Serviciu exemplu pentru dezvoltarea sistemului de programări.', 60, NULL, 1
+INSERT INTO services (name, description, category, duration_minutes, price, active)
+SELECT '[DEV] Coafat', 'Serviciu exemplu pentru dezvoltarea sistemului de programări.', 'hairstyle', 60, NULL, 1
 WHERE NOT EXISTS (SELECT 1 FROM services WHERE name = '[DEV] Coafat');
 
-INSERT INTO services (name, description, duration_minutes, price, active)
-SELECT '[DEV] Vopsit', 'Serviciu exemplu pentru dezvoltarea sistemului de programări.', 120, NULL, 1
+INSERT INTO services (name, description, category, duration_minutes, price, active)
+SELECT '[DEV] Vopsit', 'Serviciu exemplu pentru dezvoltarea sistemului de programări.', 'hairstyle', 120, NULL, 1
 WHERE NOT EXISTS (SELECT 1 FROM services WHERE name = '[DEV] Vopsit');
 
-INSERT INTO services (name, description, duration_minutes, price, active)
-SELECT '[DEV] Manichiură', 'Serviciu exemplu pentru dezvoltarea sistemului de programări.', 60, NULL, 1
+INSERT INTO services (name, description, category, duration_minutes, price, active)
+SELECT '[DEV] Manichiură', 'Serviciu exemplu pentru dezvoltarea sistemului de programări.', 'nails', 60, NULL, 1
 WHERE NOT EXISTS (SELECT 1 FROM services WHERE name = '[DEV] Manichiură');
 
-INSERT INTO services (name, description, duration_minutes, price, active)
-SELECT '[DEV] Pedichiură', 'Serviciu exemplu pentru dezvoltarea sistemului de programări.', 60, NULL, 1
+INSERT INTO services (name, description, category, duration_minutes, price, active)
+SELECT '[DEV] Pedichiură', 'Serviciu exemplu pentru dezvoltarea sistemului de programări.', 'nails', 60, NULL, 1
 WHERE NOT EXISTS (SELECT 1 FROM services WHERE name = '[DEV] Pedichiură');
 
 INSERT INTO specialists (user_id, name, email, phone, active)
@@ -187,6 +211,16 @@ FROM specialists sp
 CROSS JOIN services sv
 WHERE sp.name IN ('[DEV] Fondatoare 1', '[DEV] Fondatoare 2')
 	AND sv.name IN ('[DEV] Tuns', '[DEV] Coafat', '[DEV] Vopsit', '[DEV] Manichiură', '[DEV] Pedichiură');
+
+DELETE ss
+FROM specialist_services ss
+INNER JOIN services sv ON sv.id = ss.service_id
+INNER JOIN specialists sp ON sp.id = ss.specialist_id
+WHERE sp.specialization IS NOT NULL
+	AND sp.specialization <> CASE sv.category
+		WHEN 'hairstyle' THEN 'hairstylist'
+		WHEN 'nails' THEN 'nails'
+	END;
 
 INSERT INTO specialist_schedule (specialist_id, day_of_week, start_time, end_time, active)
 SELECT sp.id, days.day_of_week, '09:00:00', '17:00:00', 1

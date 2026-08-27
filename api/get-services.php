@@ -19,7 +19,7 @@ try {
 	require_once __DIR__ . '/../includes/db.php';
 
 	$statement = $pdo->prepare(
-		'SELECT id, name, description, duration_minutes, price
+		'SELECT id, name, description, category, duration_minutes, price
 		 FROM services
 		 WHERE active = 1
 		 ORDER BY name ASC'
@@ -31,6 +31,7 @@ try {
 			'id' => (int) $service['id'],
 			'name' => (string) $service['name'],
 			'description' => $service['description'] !== null ? (string) $service['description'] : null,
+			'category' => (string) $service['category'],
 			'duration_minutes' => (int) $service['duration_minutes'],
 			'price' => $service['price'] !== null ? (float) $service['price'] : null,
 		],

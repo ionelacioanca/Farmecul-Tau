@@ -38,9 +38,11 @@ function getBookingContext(PDO $pdo, int $serviceId, int $specialistId): ?array
 		'SELECT
 			sv.id AS service_id,
 			sv.name AS service_name,
+			sv.category AS service_category,
 			sv.duration_minutes,
 			sp.id AS specialist_id,
-			sp.name AS specialist_name
+			sp.name AS specialist_name,
+			sp.specialization AS specialist_specialization
 		 FROM services sv
 		 INNER JOIN specialist_services ss ON ss.service_id = sv.id
 		 INNER JOIN specialists sp ON sp.id = ss.specialist_id
@@ -48,6 +50,10 @@ function getBookingContext(PDO $pdo, int $serviceId, int $specialistId): ?array
 			AND sp.id = :specialist_id
 			AND sv.active = 1
 			AND sp.active = 1
+			AND sp.specialization = CASE sv.category
+				WHEN \'hairstyle\' THEN \'hairstylist\'
+				WHEN \'nails\' THEN \'nails\'
+			END
 		 LIMIT 1'
 	);
 	$statement->execute([

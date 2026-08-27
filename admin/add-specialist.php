@@ -11,6 +11,10 @@ $csrfToken = getAdminCsrfToken();
 $message = '';
 $errors = [];
 $allowedSpecializations = ['hairstylist', 'nails'];
+$categoryBySpecialization = [
+	'hairstylist' => 'hairstyle',
+	'nails' => 'nails',
+];
 $values = [
 	'name' => '',
 	'email' => '',
@@ -19,7 +23,7 @@ $values = [
 ];
 
 $serviceStatement = $pdo->prepare(
-	'SELECT id, name
+	'SELECT id, name, category
 	 FROM services
 	 WHERE active = 1
 	 ORDER BY name ASC'
@@ -27,6 +31,11 @@ $serviceStatement = $pdo->prepare(
 $serviceStatement->execute();
 $services = $serviceStatement->fetchAll();
 $activeServiceIds = array_map(static fn (array $service): int => (int) $service['id'], $services);
+$serviceCategoriesById = [];
+
+foreach ($services as $service) {
+	$serviceCategoriesById[(int) $service['id']] = (string) $service['category'];
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	$postedServiceIds = isset($_POST['service_ids']) && is_array($_POST['service_ids'])
@@ -78,8 +87,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		$errors[] = 'Alege o specializare valida.';
 	}
 
+	$requiredServiceCategory = $categoryBySpecialization[$values['specialization']] ?? null;
+
 	foreach ($values['service_ids'] as $serviceId) {
-		if (!in_array($serviceId, $activeServiceIds, true)) {
+		if (
+			!in_array($serviceId, $activeServiceIds, true)
+			|| $requiredServiceCategory === null
+			|| ($serviceCategoriesById[$serviceId] ?? null) !== $requiredServiceCategory
+		) {
 			$errors[] = 'Selectia de servicii nu este valida.';
 			break;
 		}
@@ -190,7 +205,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 				</div>
 			<?php endif; ?>
 
-			<form class="admin-form admin-form-grid" method="post" action="add-specialist.php">
+			<form class="admin-form admin-form-grid" method="post" action="add-specialist.php" data-specialist-form>
 				<label>
 					<span>Nume</span>
 					<input type="text" name="name" maxlength="150" value="<?php echo adminEscape($values['name']); ?>" required>
@@ -209,7 +224,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 				</label>
 				<label>
 					<span>Specializare</span>
-					<select name="specialization" required>
+					<select name="specialization" required data-specialization-select>
 						<option value="">Alege specializarea</option>
 						<?php foreach ($allowedSpecializations as $specialization): ?>
 							<option value="<?php echo adminEscape($specialization); ?>" <?php echo $values['specialization'] === $specialization ? 'selected' : ''; ?>>
@@ -225,11 +240,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 					<?php else: ?>
 						<div class="admin-checkbox-grid">
 							<?php foreach ($services as $service): ?>
-								<label class="admin-checkbox-label">
+								<label class="admin-checkbox-label" data-service-category="<?php echo adminEscape((string) $service['category']); ?>">
 									<input
 										type="checkbox"
 										name="service_ids[]"
 										value="<?php echo (int) $service['id']; ?>"
+										data-service-checkbox
 										<?php echo in_array((int) $service['id'], $values['service_ids'], true) ? 'checked' : ''; ?>
 									>
 									<span><?php echo adminEscape((string) $service['name']); ?></span>
@@ -243,5 +259,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 			</form>
 		</section>
 	</main>
+	<script>
+		const specialistForm = document.querySelector('[data-specialist-form]');
+
+		if (specialistForm) {
+			const categoryBySpecialization = {
+				hairstylist: 'hairstyle',
+				nails: 'nails',
+			};
+			const specializationSelect = specialistForm.querySelector('[data-specialization-select]');
+			const serviceLabels = Array.from(specialistForm.querySelectorAll('[data-service-category]'));
+
+			const filterServices = () => {
+				const requiredCategory = categoryBySpecialization[specializationSelect.value] || '';
+
+				serviceLabels.forEach((label) => {
+					const checkbox = label.querySelector('[data-service-checkbox]');
+					const isVisible = requiredCategory !== '' && label.dataset.serviceCategory === requiredCategory;
+
+					label.hidden = !isVisible;
+
+					if (!isVisible && checkbox) {
+						checkbox.checked = false;
+					}
+				});
+			};
+
+			specializationSelect.addEventListener('change', filterServices);
+			filterServices();
+		}
+	</script>
 </body>
 </html>
