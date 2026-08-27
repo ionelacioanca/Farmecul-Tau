@@ -205,7 +205,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Adauga specialist | Farmecul Tau</title>
-	<link rel="stylesheet" href="../css/style.css?v=20260826-7">
+	<link rel="stylesheet" href="../css/style.css?v=20260827-3">
 </head>
 <body>
 	<?php renderAdminHeader('Adauga specialist', 'add-specialist.php', $csrfToken, $dashboardUser, $currentSpecialist); ?>
@@ -258,20 +258,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 						<?php endforeach; ?>
 					</select>
 				</label>
-				<fieldset class="admin-form-wide">
+				<fieldset class="admin-form-wide" data-services-fieldset <?php echo $values['specialization'] === '' ? 'hidden' : ''; ?>>
 					<legend>Servicii</legend>
 					<?php if ($services === []): ?>
 						<p class="admin-empty">Nu exista servicii active.</p>
 					<?php else: ?>
 						<div class="admin-checkbox-grid">
 							<?php foreach ($services as $service): ?>
-								<label class="admin-checkbox-label" data-service-category="<?php echo adminEscape((string) $service['category']); ?>">
+								<?php
+									$serviceCategory = (string) $service['category'];
+									$isCompatibleService = $values['specialization'] !== ''
+										&& ($categoryBySpecialization[$values['specialization']] ?? null) === $serviceCategory;
+								?>
+								<label class="admin-checkbox-label" data-service-category="<?php echo adminEscape($serviceCategory); ?>" <?php echo $isCompatibleService ? '' : 'hidden'; ?>>
 									<input
 										type="checkbox"
 										name="service_ids[]"
 										value="<?php echo (int) $service['id']; ?>"
 										data-service-checkbox
-										<?php echo in_array((int) $service['id'], $values['service_ids'], true) ? 'checked' : ''; ?>
+										<?php echo $isCompatibleService && in_array((int) $service['id'], $values['service_ids'], true) ? 'checked' : ''; ?>
 									>
 									<span><?php echo adminEscape((string) $service['name']); ?></span>
 								</label>
@@ -293,10 +298,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 				nails: 'nails',
 			};
 			const specializationSelect = specialistForm.querySelector('[data-specialization-select]');
+			const servicesFieldset = specialistForm.querySelector('[data-services-fieldset]');
 			const serviceLabels = Array.from(specialistForm.querySelectorAll('[data-service-category]'));
 
 			const filterServices = () => {
 				const requiredCategory = categoryBySpecialization[specializationSelect.value] || '';
+
+				if (servicesFieldset) {
+					servicesFieldset.hidden = requiredCategory === '';
+				}
 
 				serviceLabels.forEach((label) => {
 					const checkbox = label.querySelector('[data-service-checkbox]');

@@ -1401,6 +1401,11 @@ body {
 	gap: 0.55rem;
 }
 
+.admin-form .admin-checkbox-label[hidden],
+.admin-form [data-services-fieldset][hidden] {
+	display: none !important;
+}
+
 .admin-form .admin-checkbox-label input {
 	accent-color: #8b5e3c;
 	box-shadow: none;
