@@ -13,15 +13,49 @@ CREATE TABLE IF NOT EXISTS specialists (
 	user_id INT NULL,
 	name VARCHAR(150) NOT NULL,
 	email VARCHAR(255) NULL,
+	specialization ENUM('hairstylist', 'nails') NULL,
 	phone VARCHAR(50) NULL,
 	active TINYINT(1) DEFAULT 1,
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	INDEX idx_specialists_user_id (user_id),
+	UNIQUE KEY ux_specialists_user_id (user_id),
+	INDEX idx_specialists_specialization_active (specialization, active),
 	CONSTRAINT fk_specialists_user
 		FOREIGN KEY (user_id) REFERENCES users(id)
 		ON UPDATE CASCADE
 		ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE specialists
+	ADD COLUMN IF NOT EXISTS specialization ENUM('hairstylist', 'nails') NULL
+	AFTER email;
+
+ALTER TABLE specialists
+	ADD UNIQUE INDEX IF NOT EXISTS ux_specialists_user_id (user_id);
+
+ALTER TABLE specialists
+	ADD INDEX IF NOT EXISTS idx_specialists_specialization_active (specialization, active);
+
+-- Link founder admins manually after creating/updating their user accounts.
+-- Do not run this blindly; replace the emails and specialist names with the real records:
+--
+-- UPDATE specialists sp
+-- INNER JOIN users u ON u.email = 'founder-hairstylist@example.com'
+-- SET sp.user_id = u.id,
+-- 	sp.email = u.email,
+-- 	sp.name = u.name,
+-- 	sp.specialization = 'hairstylist'
+-- WHERE sp.name = '[DEV] Fondatoare 1'
+-- 	AND u.role = 'admin';
+--
+-- UPDATE specialists sp
+-- INNER JOIN users u ON u.email = 'founder-nails@example.com'
+-- SET sp.user_id = u.id,
+-- 	sp.email = u.email,
+-- 	sp.name = u.name,
+-- 	sp.specialization = 'nails'
+-- WHERE sp.name = '[DEV] Fondatoare 2'
+-- 	AND u.role = 'admin';
 
 CREATE TABLE IF NOT EXISTS specialist_services (
 	specialist_id INT NOT NULL,
@@ -73,7 +107,7 @@ CREATE TABLE IF NOT EXISTS appointments (
 	id INT AUTO_INCREMENT PRIMARY KEY,
 	customer_user_id INT NULL,
 	customer_name VARCHAR(150) NOT NULL,
-	customer_email VARCHAR(255) NOT NULL,
+	customer_email VARCHAR(255) NULL,
 	customer_phone VARCHAR(50) NULL,
 	service_id INT NOT NULL,
 	specialist_id INT NOT NULL,
@@ -93,6 +127,7 @@ CREATE TABLE IF NOT EXISTS appointments (
 		'other'
 	) NOT NULL DEFAULT 'online',
 	notes TEXT NULL,
+	admin_note TEXT NULL,
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	INDEX idx_appointments_customer_user_id (customer_user_id),
 	INDEX idx_appointments_service_id (service_id),
@@ -111,6 +146,12 @@ CREATE TABLE IF NOT EXISTS appointments (
 		ON DELETE RESTRICT,
 	CONSTRAINT chk_appointments_time CHECK (start_datetime < end_datetime)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE appointments
+	ADD COLUMN IF NOT EXISTS admin_note TEXT NULL AFTER notes;
+
+ALTER TABLE appointments
+	MODIFY customer_email VARCHAR(255) NULL;
 
 INSERT INTO services (name, description, duration_minutes, price, active)
 SELECT '[DEV] Tuns', 'Serviciu exemplu pentru dezvoltarea sistemului de programări.', 45, NULL, 1

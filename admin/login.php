@@ -5,7 +5,7 @@ require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/admin-auth.php';
 
-if (getCurrentAdminUser($pdo) !== null) {
+if (getCurrentDashboardUser($pdo) !== null) {
 	header('Location: index.php');
 	exit;
 }
@@ -34,12 +34,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 		if (
 			$user !== false
-			&& (string) $user['role'] === 'admin'
+			&& in_array((string) $user['role'], ['admin', 'specialist'], true)
 			&& password_verify($password, (string) $user['password_hash'])
 		) {
-			setAuthenticatedAdminUser((int) $user['id']);
+			setAuthenticatedDashboardUser((int) $user['id'], (string) $user['role']);
 			unset($_SESSION['admin_csrf_token']);
-			header('Location: index.php');
+
+			$specialistStatement = $pdo->prepare(
+				'SELECT id
+				 FROM specialists
+				 WHERE user_id = :user_id
+					AND active = 1
+				 LIMIT 1'
+			);
+			$specialistStatement->execute(['user_id' => (int) $user['id']]);
+			$redirectPath = $specialistStatement->fetch() !== false ? 'my-appointments.php' : 'index.php';
+
+			header('Location: ' . $redirectPath);
 			exit;
 		}
 	}

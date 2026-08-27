@@ -1345,9 +1345,78 @@ body {
 	padding: 10px 13px;
 }
 
+.admin-form select,
+.admin-form textarea,
+.admin-filters select,
+.admin-filters input,
+.admin-note-input,
+.admin-reject-form textarea {
+	width: 100%;
+	min-height: 46px;
+	border: 1px solid rgba(25, 90, 72, 0.28);
+	border-radius: 10px;
+	background: var(--ivory);
+	color: var(--black);
+	font: inherit;
+	padding: 10px 13px;
+}
+
+.admin-form textarea,
+.admin-reject-form textarea {
+	resize: vertical;
+}
+
+.admin-form-grid {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.admin-form-wide {
+	grid-column: 1 / -1;
+}
+
+.admin-form fieldset {
+	border: 1px solid rgba(87, 62, 46, 0.18);
+	border-radius: 8px;
+	padding: 1rem;
+}
+
+.admin-form legend {
+	color: #573e2e;
+	font-size: 0.78rem;
+	font-weight: 800;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.admin-checkbox-grid {
+	display: grid;
+	gap: 0.75rem;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.admin-form .admin-checkbox-label {
+	align-items: center;
+	display: flex;
+	flex-direction: row;
+	gap: 0.55rem;
+}
+
+.admin-form .admin-checkbox-label input {
+	accent-color: #8b5e3c;
+	box-shadow: none;
+	width: auto;
+}
+
 .admin-form input:focus-visible,
+.admin-form select:focus-visible,
+.admin-form textarea:focus-visible,
+.admin-filters select:focus-visible,
+.admin-filters input:focus-visible,
+.admin-note-input:focus-visible,
+.admin-reject-form textarea:focus-visible,
 .admin-button:focus-visible,
 .admin-small-button:focus-visible,
+.admin-small-link:focus-visible,
 .admin-card-link:focus-visible {
 	outline: 2px solid var(--gold);
 	outline-offset: 3px;
@@ -1368,15 +1437,75 @@ body {
 	padding: 12px 18px;
 }
 
+.admin-link-button {
+	display: inline-flex;
+	align-items: center;
+	text-decoration: none;
+}
+
+.admin-danger-button {
+	border-color: rgba(143, 29, 29, 0.42);
+	background: #8f1d1d;
+}
+
+.admin-small-link,
+.admin-reset-link {
+	color: var(--emerald);
+	font-weight: 700;
+	text-decoration: none;
+}
+
+.admin-small-link:hover,
+.admin-small-link:focus-visible,
+.admin-reset-link:hover,
+.admin-reset-link:focus-visible {
+	color: var(--gold);
+}
+
 .admin-form-message,
 .admin-alert-error {
 	color: #8f1d1d;
+}
+
+.admin-form-message[data-type='info'] {
+	color: var(--emerald);
 }
 
 .admin-welcome,
 .admin-empty {
 	color: rgba(17, 17, 17, 0.78);
 	font-size: 1.18rem;
+}
+
+.admin-summary-grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 14px;
+	margin-top: 22px;
+}
+
+.admin-summary-card {
+	padding: 18px;
+	border: 1px solid rgba(25, 90, 72, 0.18);
+	border-radius: 12px;
+	background: var(--ivory);
+}
+
+.admin-summary-card span {
+	display: block;
+	color: rgba(17, 17, 17, 0.68);
+	font-size: 0.9rem;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.admin-summary-card strong {
+	display: block;
+	margin-top: 8px;
+	color: var(--emerald);
+	font-size: 2rem;
+	line-height: 1;
 }
 
 .admin-actions {
@@ -1411,6 +1540,14 @@ body {
 	font-size: 1.06rem;
 }
 
+.admin-alert p {
+	margin: 0;
+}
+
+.admin-alert p + p {
+	margin-top: 6px;
+}
+
 .admin-alert-success {
 	border: 1px solid rgba(25, 90, 72, 0.28);
 	color: var(--emerald);
@@ -1429,6 +1566,10 @@ body {
 	width: 100%;
 	border-collapse: collapse;
 	min-width: 960px;
+}
+
+.admin-appointments-table {
+	min-width: 1280px;
 }
 
 .admin-table th,
@@ -1465,6 +1606,26 @@ body {
 	color: var(--emerald);
 }
 
+.admin-status-pending {
+	background: rgba(198, 161, 91, 0.18);
+	color: #72551d;
+}
+
+.admin-status-approved {
+	background: rgba(25, 90, 72, 0.12);
+	color: var(--emerald);
+}
+
+.admin-status-rejected {
+	background: rgba(143, 29, 29, 0.12);
+	color: #8f1d1d;
+}
+
+.admin-status-cancelled {
+	background: rgba(17, 17, 17, 0.09);
+	color: rgba(17, 17, 17, 0.68);
+}
+
 .admin-status-used {
 	background: rgba(198, 161, 91, 0.18);
 	color: #72551d;
@@ -1482,6 +1643,142 @@ body {
 
 .admin-muted {
 	color: rgba(17, 17, 17, 0.46);
+}
+
+.admin-panel-head {
+	display: flex;
+	align-items: flex-end;
+	justify-content: space-between;
+	gap: 18px;
+	margin-bottom: 22px;
+}
+
+.admin-section-title {
+	margin: 6px 0 0;
+	color: var(--black);
+	font-size: clamp(1.7rem, 3vw, 2.35rem);
+	font-weight: 600;
+	line-height: 1.08;
+}
+
+.admin-panel-spaced {
+	margin-top: 24px;
+}
+
+.admin-filters {
+	display: grid;
+	grid-template-columns: minmax(140px, 0.75fr) minmax(180px, 1fr) minmax(160px, 0.85fr) auto auto;
+	align-items: end;
+	gap: 12px;
+	margin-bottom: 22px;
+}
+
+.admin-filters label {
+	display: grid;
+	gap: 7px;
+	margin: 0;
+	color: rgba(17, 17, 17, 0.82);
+	font-size: 1.02rem;
+	font-weight: 600;
+}
+
+.admin-reset-link {
+	align-self: center;
+	padding: 12px 0;
+}
+
+.admin-inline-actions {
+	display: grid;
+	gap: 8px;
+	min-width: 150px;
+}
+
+.admin-inline-actions form {
+	display: grid;
+	gap: 7px;
+	margin: 0;
+}
+
+.admin-note-input {
+	min-height: 38px;
+	padding: 8px 10px;
+	font-size: 0.95rem;
+}
+
+.admin-detail-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 16px;
+}
+
+.admin-detail-card {
+	padding: 20px;
+	border: 1px solid rgba(25, 90, 72, 0.16);
+	border-radius: 12px;
+	background: var(--ivory);
+}
+
+.admin-detail-card-wide {
+	grid-column: 1 / -1;
+}
+
+.admin-detail-card h3 {
+	margin: 0 0 14px;
+	color: var(--emerald);
+	font-size: 1.35rem;
+	font-weight: 600;
+}
+
+.admin-detail-card dl {
+	display: grid;
+	gap: 12px;
+	margin: 0;
+}
+
+.admin-detail-card div {
+	display: grid;
+	gap: 3px;
+}
+
+.admin-detail-card dt {
+	color: rgba(17, 17, 17, 0.56);
+	font-size: 0.82rem;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.admin-detail-card dd {
+	margin: 0;
+	color: rgba(17, 17, 17, 0.84);
+	font-size: 1.06rem;
+	line-height: 1.35;
+}
+
+.admin-detail-actions {
+	display: grid;
+	grid-template-columns: minmax(180px, 0.35fr) minmax(280px, 0.65fr);
+	align-items: start;
+	gap: 18px;
+	margin-top: 22px;
+}
+
+.admin-detail-actions form {
+	margin: 0;
+}
+
+.admin-reject-form {
+	display: grid;
+	gap: 12px;
+}
+
+.admin-reject-form label {
+	display: grid;
+	gap: 7px;
+	margin: 0;
+	color: rgba(17, 17, 17, 0.82);
+	font-size: 1.02rem;
+	font-weight: 600;
 }
 
 .booking-page {
@@ -1866,8 +2163,23 @@ body {
 		align-items: flex-start;
 		flex-direction: column;
 	}
+	.admin-panel-head {
+		align-items: flex-start;
+		flex-direction: column;
+	}
+	.admin-summary-grid,
 	.admin-actions {
 		grid-template-columns: 1fr;
+	}
+	.admin-filters,
+	.admin-form-grid,
+	.admin-detail-grid,
+	.admin-detail-actions {
+		grid-template-columns: 1fr;
+	}
+	.admin-form-wide,
+	.admin-detail-card-wide {
+		grid-column: auto;
 	}
 	.booking-panel {
 		grid-template-columns: 1fr;

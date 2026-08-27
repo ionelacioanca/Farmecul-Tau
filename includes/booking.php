@@ -70,6 +70,29 @@ function parseBookingTime(DateTimeImmutable $date, string $time): ?DateTimeImmut
 	return $date->setTime($hour, $minute);
 }
 
+function getBookingLockName(int $specialistId, DateTimeImmutable $date): string
+{
+	return 'booking:' . $specialistId . ':' . $date->format('Y-m-d');
+}
+
+function acquireBookingLock(PDO $pdo, string $lockName, int $timeoutSeconds = 5): bool
+{
+	$statement = $pdo->prepare('SELECT GET_LOCK(:lock_name, :timeout_seconds) AS lock_acquired');
+	$statement->execute([
+		'lock_name' => $lockName,
+		'timeout_seconds' => $timeoutSeconds,
+	]);
+	$result = $statement->fetch();
+
+	return $result !== false && (int) $result['lock_acquired'] === 1;
+}
+
+function releaseBookingLock(PDO $pdo, string $lockName): void
+{
+	$statement = $pdo->prepare('SELECT RELEASE_LOCK(:lock_name)');
+	$statement->execute(['lock_name' => $lockName]);
+}
+
 function getSpecialistSchedulesForDate(PDO $pdo, int $specialistId, DateTimeImmutable $date): array
 {
 	$statement = $pdo->prepare(
@@ -105,9 +128,17 @@ function bookingSlotFitsSchedule(DateTimeImmutable $candidateStart, DateTimeImmu
 	return false;
 }
 
-function bookingSlotHasOverlaps(PDO $pdo, int $specialistId, DateTimeImmutable $candidateStart, DateTimeImmutable $candidateEnd, bool $lock = false): bool
+function bookingSlotHasOverlaps(
+	PDO $pdo,
+	int $specialistId,
+	DateTimeImmutable $candidateStart,
+	DateTimeImmutable $candidateEnd,
+	bool $lock = false,
+	?int $excludedAppointmentId = null
+): bool
 {
 	$lockClause = $lock ? ' FOR UPDATE' : '';
+	$excludeClause = $excludedAppointmentId !== null ? ' AND id <> :excluded_appointment_id' : '';
 
 	$appointmentStatement = $pdo->prepare(
 		"SELECT id
@@ -115,14 +146,22 @@ function bookingSlotHasOverlaps(PDO $pdo, int $specialistId, DateTimeImmutable $
 		 WHERE specialist_id = :specialist_id
 			AND status IN ('pending', 'approved')
 			AND start_datetime < :candidate_end
-			AND end_datetime > :candidate_start
+			AND end_datetime > :candidate_start" .
+			$excludeClause .
+		"
 		 LIMIT 1" . $lockClause
 	);
-	$appointmentStatement->execute([
+	$appointmentParams = [
 		'specialist_id' => $specialistId,
 		'candidate_start' => $candidateStart->format('Y-m-d H:i:s'),
 		'candidate_end' => $candidateEnd->format('Y-m-d H:i:s'),
-	]);
+	];
+
+	if ($excludedAppointmentId !== null) {
+		$appointmentParams['excluded_appointment_id'] = $excludedAppointmentId;
+	}
+
+	$appointmentStatement->execute($appointmentParams);
 
 	if ($appointmentStatement->fetch() !== false) {
 		return true;
@@ -145,7 +184,14 @@ function bookingSlotHasOverlaps(PDO $pdo, int $specialistId, DateTimeImmutable $
 	return $blockedStatement->fetch() !== false;
 }
 
-function isBookingSlotAvailable(PDO $pdo, int $specialistId, DateTimeImmutable $candidateStart, DateTimeImmutable $candidateEnd, bool $lock = false): bool
+function isBookingSlotAvailable(
+	PDO $pdo,
+	int $specialistId,
+	DateTimeImmutable $candidateStart,
+	DateTimeImmutable $candidateEnd,
+	bool $lock = false,
+	?int $excludedAppointmentId = null
+): bool
 {
 	if ($candidateStart <= new DateTimeImmutable('now', getSalonTimezone())) {
 		return false;
@@ -157,5 +203,5 @@ function isBookingSlotAvailable(PDO $pdo, int $specialistId, DateTimeImmutable $
 		return false;
 	}
 
-	return !bookingSlotHasOverlaps($pdo, $specialistId, $candidateStart, $candidateEnd, $lock);
+	return !bookingSlotHasOverlaps($pdo, $specialistId, $candidateStart, $candidateEnd, $lock, $excludedAppointmentId);
 }

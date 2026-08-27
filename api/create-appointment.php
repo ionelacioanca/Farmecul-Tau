@@ -83,13 +83,10 @@ try {
 
 	$currentUser = getCurrentUser($pdo);
 	$customerUserId = $currentUser !== null ? (int) $currentUser['id'] : null;
-	$lockName = 'booking:' . $specialistId . ':' . $date->format('Y-m-d');
+	$lockName = getBookingLockName($specialistId, $date);
 	$lockAcquired = false;
 
-	$lockStatement = $pdo->prepare('SELECT GET_LOCK(:lock_name, 5) AS lock_acquired');
-	$lockStatement->execute(['lock_name' => $lockName]);
-	$lockResult = $lockStatement->fetch();
-	$lockAcquired = $lockResult !== false && (int) $lockResult['lock_acquired'] === 1;
+	$lockAcquired = acquireBookingLock($pdo, $lockName);
 
 	if (!$lockAcquired) {
 		sendJsonResponse(409, [
@@ -197,8 +194,7 @@ try {
 } finally {
 	if (isset($pdo, $lockAcquired, $lockName) && $pdo instanceof PDO && $lockAcquired) {
 		try {
-			$releaseStatement = $pdo->prepare('SELECT RELEASE_LOCK(:lock_name)');
-			$releaseStatement->execute(['lock_name' => $lockName]);
+			releaseBookingLock($pdo, $lockName);
 		} catch (Throwable $releaseException) {
 			error_log('Farmecul Tau booking lock release failed: ' . $releaseException->getMessage());
 		}

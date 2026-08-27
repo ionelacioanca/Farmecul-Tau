@@ -3,42 +3,14 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/admin-auth.php';
+require_once __DIR__ . '/../includes/admin-ui.php';
 require_once __DIR__ . '/../includes/promo-eligibility.php';
 
-requireAdminUser($pdo);
+$dashboardUser = requireAdminUser($pdo);
+$currentSpecialist = getCurrentSpecialist($pdo, $dashboardUser);
 
 $message = '';
 $error = '';
-
-function adminEscape(string $value): string
-{
-	return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
-}
-
-function adminFormatDate(?string $dateValue): string
-{
-	if ($dateValue === null || $dateValue === '') {
-		return '-';
-	}
-
-	try {
-		$date = new DateTimeImmutable($dateValue);
-	} catch (Exception $exception) {
-		return $dateValue;
-	}
-
-	return $date->format('d.m.Y H:i');
-}
-
-function adminFormatStatus(string $status): string
-{
-	return match ($status) {
-		'active' => 'ACTIVE',
-		'used' => 'USED',
-		'expired' => 'EXPIRED',
-		default => strtoupper($status),
-	};
-}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	$csrfToken = $_POST['csrf_token'] ?? null;
@@ -121,23 +93,10 @@ $csrfToken = getAdminCsrfToken();
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Coduri promoționale | Farmecul Tău</title>
-	<link rel="stylesheet" href="../css/style.css?v=20260826-4">
+	<link rel="stylesheet" href="../css/style.css?v=20260826-7">
 </head>
 <body>
-	<header class="admin-header">
-		<div>
-			<p class="admin-kicker">ADMINISTRARE</p>
-			<h1 class="admin-title">Coduri promoționale</h1>
-		</div>
-		<nav class="admin-nav" aria-label="Navigare administrare">
-			<a href="index.php">Dashboard</a>
-			<a class="is-active" href="promo-codes.php">Coduri promoționale</a>
-			<form class="admin-nav-form" method="post" action="logout.php">
-				<input type="hidden" name="csrf_token" value="<?php echo adminEscape($csrfToken); ?>">
-				<button type="submit">Deconectare</button>
-			</form>
-		</nav>
-	</header>
+	<?php renderAdminHeader('Coduri promoționale', 'promo-codes.php', $csrfToken); ?>
 
 	<main class="admin-page">
 		<section class="admin-panel">
