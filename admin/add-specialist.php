@@ -15,6 +15,31 @@ $categoryBySpecialization = [
 	'hairstylist' => 'hairstyle',
 	'nails' => 'nails',
 ];
+
+function ensureServiceCategoryColumn(PDO $pdo): void
+{
+	$columnStatement = $pdo->prepare(
+		'SELECT COUNT(*) AS column_exists
+		 FROM INFORMATION_SCHEMA.COLUMNS
+		 WHERE TABLE_SCHEMA = DATABASE()
+			AND TABLE_NAME = :table_name
+			AND COLUMN_NAME = :column_name'
+	);
+	$columnStatement->execute([
+		'table_name' => 'services',
+		'column_name' => 'category',
+	]);
+
+	if ((int) ($columnStatement->fetch()['column_exists'] ?? 0) > 0) {
+		return;
+	}
+
+	$pdo->exec("ALTER TABLE services ADD COLUMN category ENUM('hairstyle', 'nails') NULL AFTER description");
+	$pdo->exec("UPDATE services SET category = 'hairstyle' WHERE name IN ('[DEV] Tuns', '[DEV] Coafat', '[DEV] Vopsit')");
+	$pdo->exec("UPDATE services SET category = 'nails' WHERE id IN (4, 5) AND (category IS NULL OR category = '')");
+}
+
+ensureServiceCategoryColumn($pdo);
 $values = [
 	'name' => '',
 	'email' => '',
