@@ -68,6 +68,16 @@ try {
 		sendJsonResponse(200, [
 			'success' => true,
 			'date' => $date->format('Y-m-d'),
+			'service' => [
+				'id' => (int) $bookingContext['service_id'],
+				'name' => (string) $bookingContext['service_name'],
+			],
+			'specialist' => [
+				'id' => (int) $bookingContext['specialist_id'],
+				'name' => (string) $bookingContext['specialist_name'],
+			],
+			'price' => (float) $bookingContext['price'],
+			'duration_minutes' => $durationMinutes,
 			'slots' => [],
 		]);
 	}
@@ -98,6 +108,16 @@ try {
 	sendJsonResponse(200, [
 		'success' => true,
 		'date' => $date->format('Y-m-d'),
+		'service' => [
+			'id' => (int) $bookingContext['service_id'],
+			'name' => (string) $bookingContext['service_name'],
+		],
+		'specialist' => [
+			'id' => (int) $bookingContext['specialist_id'],
+			'name' => (string) $bookingContext['specialist_name'],
+		],
+		'price' => (float) $bookingContext['price'],
+		'duration_minutes' => $durationMinutes,
 		'slots' => $slots,
 	]);
 } catch (Throwable $exception) {

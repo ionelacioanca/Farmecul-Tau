@@ -40,6 +40,11 @@
 					</label>
 				</form>
 
+				<div class="booking-selected-details" data-booking-selected-details hidden>
+					<p data-booking-selected-duration></p>
+					<p data-booking-selected-price></p>
+				</div>
+
 				<div class="booking-slots" aria-live="polite">
 					<p class="booking-status" data-booking-status>Alege un serviciu, un specialist și o dată.</p>
 					<div class="booking-slot-grid" data-booking-slots></div>

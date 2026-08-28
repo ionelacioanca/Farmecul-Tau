@@ -110,6 +110,28 @@ try {
 			'email' => $email,
 			'specialization' => $specialization,
 		]);
+		$specialistId = (int) $pdo->lastInsertId();
+
+		$scheduleStatement = $pdo->prepare(
+			'INSERT INTO specialist_schedule (specialist_id, day_of_week, start_time, end_time, active)
+			 VALUES (:specialist_id, :day_of_week, :start_time, :end_time, 1)'
+		);
+
+		foreach ([1, 2, 3, 4, 5] as $dayOfWeek) {
+			$scheduleStatement->execute([
+				'specialist_id' => $specialistId,
+				'day_of_week' => $dayOfWeek,
+				'start_time' => '09:00:00',
+				'end_time' => '17:00:00',
+			]);
+		}
+
+		$scheduleStatement->execute([
+			'specialist_id' => $specialistId,
+			'day_of_week' => 6,
+			'start_time' => '10:00:00',
+			'end_time' => '14:00:00',
+		]);
 	}
 
 	$pdo->commit();

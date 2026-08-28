@@ -50,13 +50,22 @@ try {
 		}
 
 		$statement = $pdo->prepare(
-			'SELECT DISTINCT sp.id, sp.name
+			'SELECT DISTINCT
+				sp.id,
+				sp.name,
+				ss.price,
+				ss.duration_minutes
 			 FROM specialists sp
 			 INNER JOIN specialist_services ss ON ss.specialist_id = sp.id
 			 INNER JOIN services sv ON sv.id = ss.service_id
 			 WHERE sp.active = 1
 				AND sv.active = 1
 				AND sv.id = :service_id
+				AND ss.active = 1
+				AND ss.price IS NOT NULL
+				AND ss.price >= 0
+				AND ss.duration_minutes IS NOT NULL
+				AND ss.duration_minutes BETWEEN 5 AND 480
 				AND sp.specialization = CASE sv.category
 					WHEN \'hairstyle\' THEN \'hairstylist\'
 					WHEN \'nails\' THEN \'nails\'
@@ -78,6 +87,8 @@ try {
 		static fn (array $specialist): array => [
 			'id' => (int) $specialist['id'],
 			'name' => (string) $specialist['name'],
+			'price' => array_key_exists('price', $specialist) && $specialist['price'] !== null ? (float) $specialist['price'] : null,
+			'duration_minutes' => array_key_exists('duration_minutes', $specialist) && $specialist['duration_minutes'] !== null ? (int) $specialist['duration_minutes'] : null,
 		],
 		$statement->fetchAll()
 	);

@@ -20,6 +20,11 @@ if (ownManualBooking) {
 		statusText.dataset.type = type;
 	};
 
+	const formatPrice = (price) => new Intl.NumberFormat('ro-RO', {
+		minimumFractionDigits: 0,
+		maximumFractionDigits: 2,
+	}).format(Number(price));
+
 	const requestJson = async (url) => {
 		const response = await fetch(url, {
 			credentials: 'same-origin',
@@ -67,7 +72,10 @@ if (ownManualBooking) {
 			});
 
 			timeSelect.disabled = (data.slots || []).length === 0;
-			setStatus(timeSelect.disabled ? 'Nu exista sloturi disponibile pentru selectia curenta.' : 'Alege ora disponibila.');
+			const details = data.duration_minutes && data.price != null
+				? `Durata: ${data.duration_minutes} min. Pret: ${formatPrice(data.price)} lei.`
+				: '';
+			setStatus(timeSelect.disabled ? `Nu exista sloturi disponibile pentru selectia curenta. ${details}` : `Alege ora disponibila. ${details}`);
 			timeSelect.dataset.selectedValue = '';
 		} catch (error) {
 			resetTimes('Orele nu au putut fi incarcate');

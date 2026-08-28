@@ -45,13 +45,14 @@ $statement = $pdo->prepare(
 		a.customer_phone,
 		a.start_datetime,
 		a.end_datetime,
+		a.price_at_booking,
+		a.duration_minutes_at_booking,
 		a.status,
 		a.source,
 		a.notes,
 		a.admin_note,
 		a.created_at,
 		sv.name AS service_name,
-		sv.duration_minutes,
 		sp.name AS specialist_name,
 		u.name AS account_name,
 		u.email AS account_email
@@ -154,6 +155,14 @@ $activeRoute = $isAdmin ? 'appointments.php' : 'my-appointments.php';
 								-
 								<?php echo adminEscape(adminFormatDate((string) $appointment['end_datetime'], 'H:i')); ?>
 							</dd>
+						</div>
+						<div>
+							<dt>Durata</dt>
+							<dd><?php echo (int) $appointment['duration_minutes_at_booking']; ?> min</dd>
+						</div>
+						<div>
+							<dt>Pret</dt>
+							<dd><?php echo $appointment['price_at_booking'] !== null ? adminEscape(number_format((float) $appointment['price_at_booking'], 2, '.', '') . ' lei') : '-'; ?></dd>
 						</div>
 						<div>
 							<dt>Sursă</dt>

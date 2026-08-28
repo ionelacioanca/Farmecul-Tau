@@ -20,6 +20,11 @@ if (adminManualBooking) {
 		statusText.dataset.type = type;
 	};
 
+	const formatPrice = (price) => new Intl.NumberFormat('ro-RO', {
+		minimumFractionDigits: 0,
+		maximumFractionDigits: 2,
+	}).format(Number(price));
+
 	const requestJson = async (url) => {
 		const response = await fetch(url, {
 			credentials: 'same-origin',
@@ -73,7 +78,10 @@ if (adminManualBooking) {
 			});
 
 			timeSelect.disabled = (data.slots || []).length === 0;
-			setStatus(timeSelect.disabled ? 'Nu există sloturi disponibile pentru selecția curentă.' : 'Alege ora disponibilă.');
+			const details = data.duration_minutes && data.price != null
+				? `Durata: ${data.duration_minutes} min. Pret: ${formatPrice(data.price)} lei.`
+				: '';
+			setStatus(timeSelect.disabled ? `Nu exista sloturi disponibile pentru selectia curenta. ${details}` : `Alege ora disponibila. ${details}`);
 			timeSelect.dataset.selectedValue = '';
 		} catch (error) {
 			resetTimes('Orele nu au putut fi încărcate');
@@ -97,7 +105,10 @@ if (adminManualBooking) {
 			specialistSelect.replaceChildren(new Option('Alege specialistul', ''));
 
 			data.specialists.forEach((specialist) => {
-				const option = new Option(specialist.name, specialist.id);
+				const label = specialist.duration_minutes && specialist.price != null
+					? `${specialist.name} - ${specialist.duration_minutes} min, ${formatPrice(specialist.price)} lei`
+					: specialist.name;
+				const option = new Option(label, specialist.id);
 				option.selected = selectedSpecialist === String(specialist.id);
 				specialistSelect.append(option);
 			});

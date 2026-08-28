@@ -98,7 +98,7 @@ try {
 
 	$pdo->beginTransaction();
 
-	$bookingContext = getBookingContext($pdo, $serviceId, $specialistId);
+	$bookingContext = getBookingContext($pdo, $serviceId, $specialistId, true);
 
 	if ($bookingContext === null) {
 		$pdo->rollBack();
@@ -109,6 +109,7 @@ try {
 	}
 
 	$durationMinutes = (int) $bookingContext['duration_minutes'];
+	$priceAtBooking = (float) $bookingContext['price'];
 
 	if ($durationMinutes <= 0) {
 		$pdo->rollBack();
@@ -139,6 +140,8 @@ try {
 			specialist_id,
 			start_datetime,
 			end_datetime,
+			price_at_booking,
+			duration_minutes_at_booking,
 			status,
 			source,
 			notes
@@ -151,6 +154,8 @@ try {
 			:specialist_id,
 			:start_datetime,
 			:end_datetime,
+			:price_at_booking,
+			:duration_minutes_at_booking,
 			'pending',
 			'online',
 			:notes
@@ -165,6 +170,8 @@ try {
 		'specialist_id' => $specialistId,
 		'start_datetime' => $candidateStart->format('Y-m-d H:i:s'),
 		'end_datetime' => $candidateEnd->format('Y-m-d H:i:s'),
+		'price_at_booking' => number_format($priceAtBooking, 2, '.', ''),
+		'duration_minutes_at_booking' => $durationMinutes,
 		'notes' => $notes !== '' ? $notes : null,
 	]);
 
@@ -178,6 +185,8 @@ try {
 			'status' => 'pending',
 			'date' => $date->format('Y-m-d'),
 			'time' => $candidateStart->format('H:i'),
+			'price_at_booking' => $priceAtBooking,
+			'duration_minutes_at_booking' => $durationMinutes,
 		],
 		'message' => 'Solicitarea ta de programare a fost trimisă.',
 	]);

@@ -233,6 +233,8 @@ if ($currentSpecialist !== null) {
 			a.customer_phone,
 			a.start_datetime,
 			a.end_datetime,
+			a.price_at_booking,
+			a.duration_minutes_at_booking,
 			a.status,
 			a.source,
 			a.created_at,
@@ -273,7 +275,7 @@ $currentPath = 'my-appointments.php' . $currentQuery;
 				<?php if ($currentSpecialist !== null): ?>
 					<div class="admin-inline-actions">
 						<a class="admin-button admin-link-button" href="my-create-appointment.php">Programare externa</a>
-						<a class="admin-button admin-link-button" href="my-blocked-slots.php">Blocheaza timp</a>
+						<a class="admin-button admin-link-button" href="my-schedule.php">Programul meu</a>
 					</div>
 				<?php endif; ?>
 			</div>
@@ -321,6 +323,8 @@ $currentPath = 'my-appointments.php' . $currentQuery;
 								<th>Data</th>
 								<th>Start</th>
 								<th>End</th>
+								<th>Durata</th>
+								<th>Pret</th>
 								<th>Sursa</th>
 								<th>Status</th>
 								<th>Creat</th>
@@ -339,6 +343,8 @@ $currentPath = 'my-appointments.php' . $currentQuery;
 									<td data-label="Data"><?php echo adminEscape(adminFormatDate((string) $appointment['start_datetime'], 'd.m.Y')); ?></td>
 									<td data-label="Start"><?php echo adminEscape(adminFormatDate((string) $appointment['start_datetime'], 'H:i')); ?></td>
 									<td data-label="End"><?php echo adminEscape(adminFormatDate((string) $appointment['end_datetime'], 'H:i')); ?></td>
+									<td data-label="Durata"><?php echo (int) $appointment['duration_minutes_at_booking']; ?> min</td>
+									<td data-label="Pret"><?php echo $appointment['price_at_booking'] !== null ? adminEscape(number_format((float) $appointment['price_at_booking'], 2, '.', '') . ' lei') : '-'; ?></td>
 									<td data-label="Sursa"><?php echo adminEscape(strtoupper((string) $appointment['source'])); ?></td>
 									<td data-label="Status">
 										<span class="admin-status admin-status-<?php echo adminEscape($status); ?>">

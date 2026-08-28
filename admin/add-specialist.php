@@ -4,6 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/admin-auth.php';
 require_once __DIR__ . '/../includes/admin-ui.php';
+require_once __DIR__ . '/../includes/booking.php';
 
 $dashboardUser = requireAdmin($pdo);
 $currentSpecialist = getCurrentSpecialist($pdo, $dashboardUser);
@@ -45,10 +46,12 @@ $values = [
 	'email' => '',
 	'specialization' => '',
 	'service_ids' => [],
+	'service_prices' => [],
+	'service_durations' => [],
 ];
 
 $serviceStatement = $pdo->prepare(
-	'SELECT id, name, category
+	'SELECT id, name, category, price, duration_minutes
 	 FROM services
 	 WHERE active = 1
 	 ORDER BY name ASC'
@@ -66,12 +69,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	$postedServiceIds = isset($_POST['service_ids']) && is_array($_POST['service_ids'])
 		? $_POST['service_ids']
 		: [];
+	$postedServicePrices = isset($_POST['service_prices']) && is_array($_POST['service_prices'])
+		? $_POST['service_prices']
+		: [];
+	$postedServiceDurations = isset($_POST['service_durations']) && is_array($_POST['service_durations'])
+		? $_POST['service_durations']
+		: [];
 
 	$values = [
 		'name' => isset($_POST['name']) ? trim((string) $_POST['name']) : '',
 		'email' => isset($_POST['email']) ? strtolower(trim((string) $_POST['email'])) : '',
 		'specialization' => isset($_POST['specialization']) ? strtolower(trim((string) $_POST['specialization'])) : '',
 		'service_ids' => [],
+		'service_prices' => [],
+		'service_durations' => [],
 	];
 	$password = isset($_POST['password']) ? (string) $_POST['password'] : '';
 	$passwordConfirmation = isset($_POST['password_confirmation']) ? (string) $_POST['password_confirmation'] : '';
@@ -83,6 +94,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 		if ($serviceId !== false) {
 			$values['service_ids'][] = $serviceId;
+			$priceInput = isset($postedServicePrices[$serviceIdValue]) ? trim((string) $postedServicePrices[$serviceIdValue]) : '';
+			$durationInput = isset($postedServiceDurations[$serviceIdValue]) ? trim((string) $postedServiceDurations[$serviceIdValue]) : '';
+			$values['service_prices'][$serviceId] = $priceInput;
+			$values['service_durations'][$serviceId] = $durationInput;
 		}
 	}
 
@@ -122,6 +137,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		) {
 			$errors[] = 'Selectia de servicii nu este valida.';
 			break;
+		}
+
+		$priceInput = $values['service_prices'][$serviceId] ?? '';
+		$durationInput = $values['service_durations'][$serviceId] ?? '';
+
+		if ($priceInput !== '') {
+			$price = parseAdminDecimal($priceInput);
+
+			if ($price === null || $price < 0 || $price > 99999.99) {
+				$errors[] = 'Pretul initial pentru servicii trebuie sa fie intre 0 si 99999.99.';
+				break;
+			}
+		}
+
+		if ($durationInput !== '') {
+			$duration = filter_var($durationInput, FILTER_VALIDATE_INT, [
+				'options' => ['min_range' => 5, 'max_range' => 480],
+			]);
+
+			if ($duration === false) {
+				$errors[] = 'Durata initiala pentru servicii trebuie sa fie intre 5 si 480 minute.';
+				break;
+			}
 		}
 	}
 
@@ -165,16 +203,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 				]);
 				$specialistId = (int) $pdo->lastInsertId();
 
+				$scheduleStatement = $pdo->prepare(
+					'INSERT INTO specialist_schedule (specialist_id, day_of_week, start_time, end_time, active)
+					 VALUES (:specialist_id, :day_of_week, :start_time, :end_time, 1)'
+				);
+
+				foreach ([1, 2, 3, 4, 5] as $dayOfWeek) {
+					$scheduleStatement->execute([
+						'specialist_id' => $specialistId,
+						'day_of_week' => $dayOfWeek,
+						'start_time' => '09:00:00',
+						'end_time' => '17:00:00',
+					]);
+				}
+
+				$scheduleStatement->execute([
+					'specialist_id' => $specialistId,
+					'day_of_week' => 6,
+					'start_time' => '10:00:00',
+					'end_time' => '14:00:00',
+				]);
+
 				if ($values['service_ids'] !== []) {
 					$serviceInsertStatement = $pdo->prepare(
-						'INSERT INTO specialist_services (specialist_id, service_id)
-						 VALUES (:specialist_id, :service_id)'
+						'INSERT INTO specialist_services (specialist_id, service_id, price, duration_minutes, active)
+						 VALUES (:specialist_id, :service_id, :price, :duration_minutes, 1)'
 					);
 
 					foreach ($values['service_ids'] as $serviceId) {
+						$priceInput = $values['service_prices'][$serviceId] ?? '';
+						$durationInput = $values['service_durations'][$serviceId] ?? '';
 						$serviceInsertStatement->execute([
 							'specialist_id' => $specialistId,
 							'service_id' => $serviceId,
+							'price' => $priceInput !== '' ? number_format((float) parseAdminDecimal($priceInput), 2, '.', '') : null,
+							'duration_minutes' => $durationInput !== '' ? (int) $durationInput : null,
 						]);
 					}
 				}
@@ -186,6 +249,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 					'email' => '',
 					'specialization' => '',
 					'service_ids' => [],
+					'service_prices' => [],
+					'service_durations' => [],
 				];
 			}
 		} catch (Throwable $exception) {
@@ -279,6 +344,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 										<?php echo $isCompatibleService && in_array((int) $service['id'], $values['service_ids'], true) ? 'checked' : ''; ?>
 									>
 									<span><?php echo adminEscape((string) $service['name']); ?></span>
+									<input
+										type="number"
+										name="service_prices[<?php echo (int) $service['id']; ?>]"
+										min="0"
+										max="99999.99"
+										step="0.01"
+										placeholder="Pret"
+										value="<?php echo adminEscape($values['service_prices'][(int) $service['id']] ?? ($service['price'] !== null ? (string) $service['price'] : '')); ?>"
+									>
+									<input
+										type="number"
+										name="service_durations[<?php echo (int) $service['id']; ?>]"
+										min="5"
+										max="480"
+										step="5"
+										placeholder="Durata min"
+										value="<?php echo adminEscape($values['service_durations'][(int) $service['id']] ?? ($service['duration_minutes'] !== null ? (string) $service['duration_minutes'] : '')); ?>"
+									>
 								</label>
 							<?php endforeach; ?>
 						</div>

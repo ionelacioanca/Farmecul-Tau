@@ -13,6 +13,9 @@ if (bookingAvailability) {
 	const summarySpecialist = bookingAvailability.querySelector('[data-booking-summary-specialist]');
 	const summaryDate = bookingAvailability.querySelector('[data-booking-summary-date]');
 	const summaryTime = bookingAvailability.querySelector('[data-booking-summary-time]');
+	const selectedDetails = bookingAvailability.querySelector('[data-booking-selected-details]');
+	const selectedDuration = bookingAvailability.querySelector('[data-booking-selected-duration]');
+	const selectedPrice = bookingAvailability.querySelector('[data-booking-selected-price]');
 
 	const services = new Map();
 	const specialists = new Map();
@@ -33,6 +36,28 @@ if (bookingAvailability) {
 		formMessage.dataset.type = type;
 	};
 
+	const formatPrice = (price) => new Intl.NumberFormat('ro-RO', {
+		minimumFractionDigits: 0,
+		maximumFractionDigits: 2,
+	}).format(Number(price));
+
+	const renderSelectedDetails = (details) => {
+		if (!selectedDetails || !selectedDuration || !selectedPrice) {
+			return;
+		}
+
+		if (!details || details.duration_minutes == null || details.price == null) {
+			selectedDetails.hidden = true;
+			selectedDuration.textContent = '';
+			selectedPrice.textContent = '';
+			return;
+		}
+
+		selectedDuration.textContent = `Durata estimata: ${details.duration_minutes} min`;
+		selectedPrice.textContent = `Pret: ${formatPrice(details.price)} lei`;
+		selectedDetails.hidden = false;
+	};
+
 	const clearSlots = () => {
 		slotsGrid.replaceChildren();
 	};
@@ -51,6 +76,7 @@ if (bookingAvailability) {
 		detailsForm.hidden = false;
 		setFormMessage('');
 		removeConfirmation();
+		renderSelectedDetails(null);
 		bookingAvailability.querySelectorAll('.booking-slot').forEach((button) => {
 			button.classList.remove('is-selected');
 		});
@@ -132,16 +158,18 @@ if (bookingAvailability) {
 	const showDetails = (slot) => {
 		const selectedService = services.get(String(serviceSelect.value));
 		const selectedSpecialist = specialists.get(String(specialistSelect.value));
+		const durationMinutes = selectedSpecialist?.duration_minutes;
 
 		selectedSlot = slot;
 		summaryService.textContent = selectedService
-			? `${selectedService.name} (${selectedService.duration_minutes} min)`
+			? `${selectedService.name}${durationMinutes ? ` (${durationMinutes} min)` : ''}`
 			: serviceSelect.options[serviceSelect.selectedIndex]?.textContent || '-';
 		summarySpecialist.textContent = selectedSpecialist
 			? selectedSpecialist.name
 			: specialistSelect.options[specialistSelect.selectedIndex]?.textContent || '-';
 		summaryDate.textContent = formatDate(dateInput.value);
 		summaryTime.textContent = slot;
+		renderSelectedDetails(selectedSpecialist || null);
 
 		removeConfirmation();
 		detailsForm.hidden = false;
@@ -195,8 +223,7 @@ if (bookingAvailability) {
 
 			data.services.forEach((service) => {
 				services.set(String(service.id), service);
-				const label = `${service.name} (${service.duration_minutes} min)`;
-				serviceSelect.append(new Option(label, service.id));
+				serviceSelect.append(new Option(service.name, service.id));
 			});
 
 			setStatus('Alege un serviciu, un specialist și o dată.');
@@ -224,7 +251,10 @@ if (bookingAvailability) {
 
 			data.specialists.forEach((specialist) => {
 				specialists.set(String(specialist.id), specialist);
-				specialistSelect.append(new Option(specialist.name, specialist.id));
+				const label = specialist.duration_minutes && specialist.price != null
+					? `${specialist.name} - ${specialist.duration_minutes} min, ${formatPrice(specialist.price)} lei`
+					: specialist.name;
+				specialistSelect.append(new Option(label, specialist.id));
 			});
 
 			if (data.specialists.length === 1) {
@@ -233,15 +263,19 @@ if (bookingAvailability) {
 
 			specialistSelect.disabled = data.specialists.length <= 1;
 			if (data.specialists.length === 0) {
+				renderSelectedDetails(null);
 				setStatus('Momentan nu exista specialisti disponibili pentru acest serviciu.');
 				return;
 			} else if (data.specialists.length === 1) {
+				renderSelectedDetails(data.specialists[0]);
 				setStatus('Specialistul a fost selectat automat. Alege data.');
 				return;
 			}
+			renderSelectedDetails(null);
 			setStatus(data.specialists.length ? 'Alege specialistul și data.' : 'Nu există specialiști disponibili pentru acest serviciu.');
 		} catch (error) {
 			resetSpecialists('Specialiștii nu au putut fi încărcați');
+			renderSelectedDetails(null);
 			setStatus(error.message);
 		}
 	};
@@ -268,8 +302,20 @@ if (bookingAvailability) {
 
 		try {
 			const data = await apiGet(`../api/get-availability.php?${params.toString()}`);
+			if (data.specialist?.id) {
+				specialists.set(String(data.specialist.id), {
+					...data.specialist,
+					price: data.price,
+					duration_minutes: data.duration_minutes,
+				});
+			}
+			renderSelectedDetails({
+				price: data.price,
+				duration_minutes: data.duration_minutes,
+			});
 			renderSlots(data.slots || []);
 		} catch (error) {
+			renderSelectedDetails(null);
 			setStatus(error.message);
 		}
 	};

@@ -1413,11 +1413,40 @@ body {
 	width: auto;
 }
 
+.admin-form .admin-checkbox-label input[type='number'] {
+	min-height: 38px;
+	max-width: 120px;
+	padding: 8px 10px;
+}
+
+.admin-table input[type='number'],
+.admin-table input[type='time'] {
+	width: 100%;
+	min-height: 38px;
+	border: 1px solid rgba(25, 90, 72, 0.28);
+	border-radius: 8px;
+	background: var(--ivory);
+	color: var(--black);
+	font: inherit;
+	padding: 8px 10px;
+}
+
+.admin-schedule-section {
+	margin-top: 28px;
+}
+
+.admin-schedule-section h3 {
+	margin: 0 0 14px;
+	color: #573e2e;
+	font-size: 1.15rem;
+}
+
 .admin-form input:focus-visible,
 .admin-form select:focus-visible,
 .admin-form textarea:focus-visible,
 .admin-filters select:focus-visible,
 .admin-filters input:focus-visible,
+.admin-table input:focus-visible,
 .admin-note-input:focus-visible,
 .admin-reject-form textarea:focus-visible,
 .admin-button:focus-visible,
@@ -1882,6 +1911,23 @@ body {
 .booking-form select:disabled {
 	cursor: default;
 	opacity: 0.62;
+}
+
+.booking-selected-details {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px 18px;
+	margin-top: 18px;
+	color: #573e2e;
+	font-weight: 700;
+}
+
+.booking-selected-details[hidden] {
+	display: none;
+}
+
+.booking-selected-details p {
+	margin: 0;
 }
 
 .booking-form select:focus-visible,

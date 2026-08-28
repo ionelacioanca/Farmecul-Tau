@@ -84,8 +84,12 @@ ALTER TABLE specialists
 CREATE TABLE IF NOT EXISTS specialist_services (
 	specialist_id INT NOT NULL,
 	service_id INT NOT NULL,
+	price DECIMAL(10,2) NULL,
+	duration_minutes INT NULL,
+	active TINYINT(1) NOT NULL DEFAULT 1,
 	PRIMARY KEY (specialist_id, service_id),
 	INDEX idx_specialist_services_service_id (service_id),
+	INDEX idx_specialist_services_bookable (service_id, active, duration_minutes, price),
 	CONSTRAINT fk_specialist_services_specialist
 		FOREIGN KEY (specialist_id) REFERENCES specialists(id)
 		ON UPDATE CASCADE
@@ -96,6 +100,20 @@ CREATE TABLE IF NOT EXISTS specialist_services (
 		ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+ALTER TABLE specialist_services
+	ADD COLUMN IF NOT EXISTS price DECIMAL(10,2) NULL AFTER service_id,
+	ADD COLUMN IF NOT EXISTS duration_minutes INT NULL AFTER price,
+	ADD COLUMN IF NOT EXISTS active TINYINT(1) NOT NULL DEFAULT 1 AFTER duration_minutes;
+
+UPDATE specialist_services ss
+INNER JOIN services sv ON sv.id = ss.service_id
+SET ss.price = COALESCE(ss.price, sv.price),
+	ss.duration_minutes = COALESCE(ss.duration_minutes, sv.duration_minutes),
+	ss.active = COALESCE(ss.active, 1);
+
+ALTER TABLE specialist_services
+	ADD INDEX IF NOT EXISTS idx_specialist_services_bookable (service_id, active, duration_minutes, price);
+
 CREATE TABLE IF NOT EXISTS specialist_schedule (
 	id INT AUTO_INCREMENT PRIMARY KEY,
 	specialist_id INT NOT NULL,
@@ -104,6 +122,7 @@ CREATE TABLE IF NOT EXISTS specialist_schedule (
 	end_time TIME NOT NULL,
 	active TINYINT(1) DEFAULT 1,
 	INDEX idx_specialist_schedule_lookup (specialist_id, day_of_week, active),
+	UNIQUE KEY ux_specialist_schedule_day (specialist_id, day_of_week),
 	CONSTRAINT fk_specialist_schedule_specialist
 		FOREIGN KEY (specialist_id) REFERENCES specialists(id)
 		ON UPDATE CASCADE
@@ -137,6 +156,8 @@ CREATE TABLE IF NOT EXISTS appointments (
 	specialist_id INT NOT NULL,
 	start_datetime DATETIME NOT NULL,
 	end_datetime DATETIME NOT NULL,
+	price_at_booking DECIMAL(10,2) NULL,
+	duration_minutes_at_booking INT NOT NULL,
 	status ENUM(
 		'pending',
 		'approved',
@@ -175,6 +196,29 @@ ALTER TABLE appointments
 	ADD COLUMN IF NOT EXISTS admin_note TEXT NULL AFTER notes;
 
 ALTER TABLE appointments
+	ADD COLUMN IF NOT EXISTS price_at_booking DECIMAL(10,2) NULL AFTER end_datetime,
+	ADD COLUMN IF NOT EXISTS duration_minutes_at_booking INT NULL AFTER price_at_booking;
+
+UPDATE appointments a
+LEFT JOIN services sv ON sv.id = a.service_id
+SET a.price_at_booking = COALESCE(a.price_at_booking, sv.price),
+	a.duration_minutes_at_booking = COALESCE(
+		a.duration_minutes_at_booking,
+		TIMESTAMPDIFF(MINUTE, a.start_datetime, a.end_datetime),
+		sv.duration_minutes
+	)
+WHERE a.duration_minutes_at_booking IS NULL
+	OR a.price_at_booking IS NULL;
+
+UPDATE appointments
+SET duration_minutes_at_booking = 5
+WHERE duration_minutes_at_booking IS NULL
+	OR duration_minutes_at_booking < 1;
+
+ALTER TABLE appointments
+	MODIFY duration_minutes_at_booking INT NOT NULL;
+
+ALTER TABLE appointments
 	MODIFY customer_email VARCHAR(255) NULL;
 
 INSERT INTO services (name, description, category, duration_minutes, price, active)
@@ -205,8 +249,8 @@ INSERT INTO specialists (user_id, name, email, phone, active)
 SELECT NULL, '[DEV] Fondatoare 2', NULL, NULL, 1
 WHERE NOT EXISTS (SELECT 1 FROM specialists WHERE name = '[DEV] Fondatoare 2');
 
-INSERT IGNORE INTO specialist_services (specialist_id, service_id)
-SELECT sp.id, sv.id
+INSERT IGNORE INTO specialist_services (specialist_id, service_id, price, duration_minutes, active)
+SELECT sp.id, sv.id, sv.price, sv.duration_minutes, 1
 FROM specialists sp
 CROSS JOIN services sv
 WHERE sp.name IN ('[DEV] Fondatoare 1', '[DEV] Fondatoare 2')
@@ -238,8 +282,6 @@ WHERE sp.name IN ('[DEV] Fondatoare 1', '[DEV] Fondatoare 2')
 		FROM specialist_schedule existing
 		WHERE existing.specialist_id = sp.id
 			AND existing.day_of_week = days.day_of_week
-			AND existing.start_time = '09:00:00'
-			AND existing.end_time = '17:00:00'
 	);
 
 INSERT INTO specialist_schedule (specialist_id, day_of_week, start_time, end_time, active)
@@ -251,6 +293,25 @@ WHERE sp.name IN ('[DEV] Fondatoare 1', '[DEV] Fondatoare 2')
 		FROM specialist_schedule existing
 		WHERE existing.specialist_id = sp.id
 			AND existing.day_of_week = 6
-			AND existing.start_time = '10:00:00'
-			AND existing.end_time = '14:00:00'
 	);
+
+CREATE TABLE IF NOT EXISTS specialist_schedule_exceptions (
+	id INT AUTO_INCREMENT PRIMARY KEY,
+	specialist_id INT NOT NULL,
+	date DATE NOT NULL,
+	is_day_off TINYINT(1) NOT NULL DEFAULT 0,
+	start_time TIME NULL,
+	end_time TIME NULL,
+	note VARCHAR(255) NULL,
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	UNIQUE KEY ux_specialist_schedule_exception_date (specialist_id, date),
+	INDEX idx_specialist_schedule_exceptions_lookup (specialist_id, date, is_day_off),
+	CONSTRAINT fk_specialist_schedule_exceptions_specialist
+		FOREIGN KEY (specialist_id) REFERENCES specialists(id)
+		ON UPDATE CASCADE
+		ON DELETE CASCADE,
+	CONSTRAINT chk_specialist_schedule_exceptions_day_off CHECK (
+			(is_day_off = 1 AND start_time IS NULL AND end_time IS NULL)
+			OR (is_day_off = 0 AND start_time IS NOT NULL AND end_time IS NOT NULL AND start_time < end_time)
+	)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

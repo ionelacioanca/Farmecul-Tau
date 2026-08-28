@@ -11,6 +11,40 @@ function setSalonTimezone(): void
 	date_default_timezone_set('Europe/Bucharest');
 }
 
+function getServiceCategoryForSpecialization(?string $specialization): ?string
+{
+	return match ($specialization) {
+		'hairstylist' => 'hairstyle',
+		'nails' => 'nails',
+		default => null,
+	};
+}
+
+function normalizeServiceName(string $name): string
+{
+	$normalized = trim(preg_replace('/\s+/', ' ', $name) ?? $name);
+
+	return function_exists('mb_strtolower')
+		? mb_strtolower($normalized, 'UTF-8')
+		: strtolower($normalized);
+}
+
+function isValidBookingTimeValue(string $time): bool
+{
+	return preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/', $time) === 1;
+}
+
+function parseAdminDecimal(string $value): ?float
+{
+	$normalized = str_replace(',', '.', trim($value));
+
+	if ($normalized === '' || !is_numeric($normalized)) {
+		return null;
+	}
+
+	return (float) $normalized;
+}
+
 function parseBookingDate(string $date): ?DateTimeImmutable
 {
 	$timezone = getSalonTimezone();
@@ -32,14 +66,17 @@ function intervalsOverlap(DateTimeImmutable $candidateStart, DateTimeImmutable $
 	return $candidateStart < $existingEnd && $candidateEnd > $existingStart;
 }
 
-function getBookingContext(PDO $pdo, int $serviceId, int $specialistId): ?array
+function getBookingContext(PDO $pdo, int $serviceId, int $specialistId, bool $lock = false): ?array
 {
+	$lockClause = $lock ? ' FOR UPDATE' : '';
 	$statement = $pdo->prepare(
 		'SELECT
 			sv.id AS service_id,
 			sv.name AS service_name,
 			sv.category AS service_category,
-			sv.duration_minutes,
+			ss.price,
+			ss.duration_minutes,
+			ss.active AS specialist_service_active,
 			sp.id AS specialist_id,
 			sp.name AS specialist_name,
 			sp.specialization AS specialist_specialization
@@ -50,11 +87,16 @@ function getBookingContext(PDO $pdo, int $serviceId, int $specialistId): ?array
 			AND sp.id = :specialist_id
 			AND sv.active = 1
 			AND sp.active = 1
+			AND ss.active = 1
+			AND ss.price IS NOT NULL
+			AND ss.price >= 0
+			AND ss.duration_minutes IS NOT NULL
+			AND ss.duration_minutes BETWEEN 5 AND 480
 			AND sp.specialization = CASE sv.category
 				WHEN \'hairstyle\' THEN \'hairstylist\'
 				WHEN \'nails\' THEN \'nails\'
 			END
-		 LIMIT 1'
+		 LIMIT 1' . $lockClause
 	);
 	$statement->execute([
 		'service_id' => $serviceId,
@@ -99,15 +141,46 @@ function releaseBookingLock(PDO $pdo, string $lockName): void
 	$statement->execute(['lock_name' => $lockName]);
 }
 
+function getSpecialistScheduleExceptionForDate(PDO $pdo, int $specialistId, DateTimeImmutable $date): ?array
+{
+	$statement = $pdo->prepare(
+		'SELECT is_day_off, start_time, end_time, note
+		 FROM specialist_schedule_exceptions
+		 WHERE specialist_id = :specialist_id
+			AND date = :date
+		 LIMIT 1'
+	);
+	$statement->execute([
+		'specialist_id' => $specialistId,
+		'date' => $date->format('Y-m-d'),
+	]);
+	$exception = $statement->fetch();
+
+	return $exception !== false ? $exception : null;
+}
+
 function getSpecialistSchedulesForDate(PDO $pdo, int $specialistId, DateTimeImmutable $date): array
 {
+	$exception = getSpecialistScheduleExceptionForDate($pdo, $specialistId, $date);
+
+	if ($exception !== null) {
+		if ((int) $exception['is_day_off'] === 1) {
+			return [];
+		}
+
+		return [[
+			'start_time' => (string) $exception['start_time'],
+			'end_time' => (string) $exception['end_time'],
+		]];
+	}
+
 	$statement = $pdo->prepare(
 		'SELECT start_time, end_time
 		 FROM specialist_schedule
 		 WHERE specialist_id = :specialist_id
 			AND day_of_week = :day_of_week
 			AND active = 1
-		 ORDER BY start_time ASC'
+		 LIMIT 1'
 	);
 	$statement->execute([
 		'specialist_id' => $specialistId,

@@ -104,13 +104,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 				$errors[] = 'Intervalul nu mai este disponibil. Alege altă oră.';
 			} else {
 				$pdo->beginTransaction();
-				$bookingContext = getBookingContext($pdo, $serviceId, $specialistId);
+				$bookingContext = getBookingContext($pdo, $serviceId, $specialistId, true);
 
 				if ($bookingContext === null) {
 					$pdo->rollBack();
 					$errors[] = 'Serviciul sau specialistul nu este disponibil.';
 				} else {
 					$durationMinutes = (int) $bookingContext['duration_minutes'];
+					$priceAtBooking = (float) $bookingContext['price'];
 
 					if ($durationMinutes <= 0) {
 						$pdo->rollBack();
@@ -132,6 +133,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 									specialist_id,
 									start_datetime,
 									end_datetime,
+									price_at_booking,
+									duration_minutes_at_booking,
 									status,
 									source,
 									notes
@@ -144,6 +147,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 									:specialist_id,
 									:start_datetime,
 									:end_datetime,
+									:price_at_booking,
+									:duration_minutes_at_booking,
 									'approved',
 									:source,
 									:notes
@@ -157,6 +162,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 								'specialist_id' => $specialistId,
 								'start_datetime' => $candidateStart->format('Y-m-d H:i:s'),
 								'end_datetime' => $candidateEnd->format('Y-m-d H:i:s'),
+								'price_at_booking' => number_format($priceAtBooking, 2, '.', ''),
+								'duration_minutes_at_booking' => $durationMinutes,
 								'source' => $values['source'],
 								'notes' => $values['notes'] !== '' ? $values['notes'] : null,
 							]);
@@ -199,7 +206,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $serviceStatement = $pdo->prepare(
-	'SELECT id, name, duration_minutes
+	'SELECT id, name
 	 FROM services
 	 WHERE active = 1
 	 ORDER BY name ASC'
@@ -268,7 +275,7 @@ $services = $serviceStatement->fetchAll();
 						<option value="">Alege serviciul</option>
 						<?php foreach ($services as $service): ?>
 							<option value="<?php echo (int) $service['id']; ?>" <?php echo $values['service_id'] === (string) $service['id'] ? 'selected' : ''; ?>>
-								<?php echo adminEscape((string) $service['name']); ?> (<?php echo (int) $service['duration_minutes']; ?> min)
+								<?php echo adminEscape((string) $service['name']); ?>
 							</option>
 						<?php endforeach; ?>
 					</select>

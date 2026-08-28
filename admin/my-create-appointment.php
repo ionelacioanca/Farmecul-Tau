@@ -99,13 +99,14 @@ if ($currentSpecialist !== null && $_SERVER['REQUEST_METHOD'] === 'POST') {
 				$errors[] = 'Intervalul nu mai este disponibil. Alege alta ora.';
 			} else {
 				$pdo->beginTransaction();
-				$bookingContext = getBookingContext($pdo, $serviceId, $specialistId);
+				$bookingContext = getBookingContext($pdo, $serviceId, $specialistId, true);
 
 				if ($bookingContext === null) {
 					$pdo->rollBack();
 					$errors[] = 'Serviciul nu este disponibil pentru contul tau.';
 				} else {
 					$durationMinutes = (int) $bookingContext['duration_minutes'];
+					$priceAtBooking = (float) $bookingContext['price'];
 					$candidateEnd = $candidateStart->add(new DateInterval('PT' . $durationMinutes . 'M'));
 
 					if ($durationMinutes <= 0 || !isBookingSlotAvailable($pdo, $specialistId, $candidateStart, $candidateEnd, true)) {
@@ -122,6 +123,8 @@ if ($currentSpecialist !== null && $_SERVER['REQUEST_METHOD'] === 'POST') {
 								specialist_id,
 								start_datetime,
 								end_datetime,
+								price_at_booking,
+								duration_minutes_at_booking,
 								status,
 								source,
 								notes
@@ -134,6 +137,8 @@ if ($currentSpecialist !== null && $_SERVER['REQUEST_METHOD'] === 'POST') {
 								:specialist_id,
 								:start_datetime,
 								:end_datetime,
+								:price_at_booking,
+								:duration_minutes_at_booking,
 								'approved',
 								:source,
 								:notes
@@ -147,6 +152,8 @@ if ($currentSpecialist !== null && $_SERVER['REQUEST_METHOD'] === 'POST') {
 							'specialist_id' => $specialistId,
 							'start_datetime' => $candidateStart->format('Y-m-d H:i:s'),
 							'end_datetime' => $candidateEnd->format('Y-m-d H:i:s'),
+							'price_at_booking' => number_format($priceAtBooking, 2, '.', ''),
+							'duration_minutes_at_booking' => $durationMinutes,
 							'source' => $values['source'],
 							'notes' => $values['notes'] !== '' ? $values['notes'] : null,
 						]);
@@ -188,15 +195,24 @@ if ($currentSpecialist !== null && $_SERVER['REQUEST_METHOD'] === 'POST') {
 $services = [];
 
 if ($currentSpecialist !== null) {
+	$serviceCategory = getServiceCategoryForSpecialization($currentSpecialist['specialization'] ?? null);
 	$serviceStatement = $pdo->prepare(
-		'SELECT sv.id, sv.name, sv.duration_minutes
+		'SELECT sv.id, sv.name, ss.duration_minutes, ss.price
 		 FROM services sv
 		 INNER JOIN specialist_services ss ON ss.service_id = sv.id
 		 WHERE ss.specialist_id = :specialist_id
 			AND sv.active = 1
+			AND sv.category = :category
+			AND ss.active = 1
+			AND ss.price IS NOT NULL
+			AND ss.duration_minutes IS NOT NULL
+			AND ss.duration_minutes BETWEEN 5 AND 480
 		 ORDER BY sv.name ASC'
 	);
-	$serviceStatement->execute(['specialist_id' => (int) $currentSpecialist['id']]);
+	$serviceStatement->execute([
+		'specialist_id' => (int) $currentSpecialist['id'],
+		'category' => $serviceCategory,
+	]);
 	$services = $serviceStatement->fetchAll();
 }
 ?>
@@ -262,7 +278,7 @@ if ($currentSpecialist !== null) {
 							<option value="">Alege serviciul</option>
 							<?php foreach ($services as $service): ?>
 								<option value="<?php echo (int) $service['id']; ?>" <?php echo $values['service_id'] === (string) $service['id'] ? 'selected' : ''; ?>>
-									<?php echo adminEscape((string) $service['name']); ?> (<?php echo (int) $service['duration_minutes']; ?> min)
+									<?php echo adminEscape((string) $service['name']); ?> (<?php echo (int) $service['duration_minutes']; ?> min, <?php echo adminEscape(number_format((float) $service['price'], 2, '.', '')); ?> lei)
 								</option>
 							<?php endforeach; ?>
 						</select>
