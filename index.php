@@ -12,7 +12,7 @@
 	<?php require_once __DIR__ . '/includes/hero.php'; ?>
 	<?php require_once __DIR__ . '/includes/site-map.php'; ?>
 
-	<section class="beauty-game" aria-labelledby="beauty-game-title">
+	<section class="beauty-game" id="beauty-quote-surpriza" aria-labelledby="beauty-game-title">
 		<div class="beauty-game-shell">
 			<div class="beauty-game-heading">
 				<h2 class="site-map-kicker beauty-game-title" id="beauty-game-title">SURPRIZE PROMOȚIONALE</h2>

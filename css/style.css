@@ -1674,6 +1674,12 @@ body {
 	text-transform: uppercase;
 }
 
+.admin-button:disabled,
+.admin-small-button:disabled {
+	cursor: not-allowed;
+	opacity: 0.58;
+}
+
 .admin-button {
 	padding: 12px 18px;
 }
@@ -2088,6 +2094,22 @@ body {
 	display: grid;
 	align-content: start;
 	gap: 18px;
+}
+
+.booking-offer-summary {
+	display: grid;
+	gap: 6px;
+	padding-bottom: 8px;
+	border-bottom: 1px solid rgba(25, 90, 72, 0.16);
+}
+
+.booking-offer-summary h2 {
+	margin: 0;
+	color: var(--emerald);
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: 1.45rem;
+	font-weight: 600;
+	line-height: 1.15;
 }
 
 .booking-form label {
@@ -2636,6 +2658,439 @@ body {
 .lightbox-prev { left: 22px; }
 .lightbox-next { right: 22px; }
 
+.section-kicker {
+	margin: 0;
+	color: var(--gold);
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: 0.94rem;
+	font-weight: 700;
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+}
+
+.offers-page {
+	background: var(--ivory);
+	color: var(--black);
+}
+
+.offers-intro,
+.offers-current,
+.offers-surprise,
+.offers-final-cta {
+	width: min(100% - 48px, 1180px);
+	margin: 0 auto;
+}
+
+.offers-intro {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(180px, 320px);
+	gap: clamp(28px, 5vw, 68px);
+	align-items: center;
+	padding: clamp(52px, 8vw, 86px) 0 clamp(28px, 5vw, 48px);
+}
+
+.offers-intro-copy {
+	max-width: 660px;
+}
+
+.offers-intro h1 {
+	margin: 8px 0 0;
+	color: #573e2e;
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: clamp(2.7rem, 7vw, 5.6rem);
+	font-weight: 500;
+	line-height: 0.95;
+}
+
+.offers-intro-line,
+.offers-intro p {
+	color: rgba(17, 17, 17, 0.78);
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: clamp(1.14rem, 2vw, 1.34rem);
+	line-height: 1.55;
+}
+
+.offers-intro-line {
+	margin: 18px 0 0;
+	color: var(--emerald);
+	font-weight: 600;
+}
+
+.offers-intro p:not(.section-kicker):not(.offers-intro-line) {
+	max-width: 52ch;
+	margin: 10px 0 0;
+}
+
+.offers-intro-visual {
+	display: grid;
+	place-items: center;
+	aspect-ratio: 1;
+	border: 1px solid rgba(198, 161, 91, 0.42);
+	border-radius: 8px;
+	background: var(--emerald);
+	overflow: hidden;
+}
+
+.offers-intro-visual img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	padding: clamp(22px, 5vw, 44px);
+	object-fit: contain;
+}
+
+.offers-current {
+	padding: clamp(24px, 5vw, 52px) 0 clamp(58px, 9vw, 112px);
+}
+
+.offers-section-heading {
+	display: flex;
+	justify-content: center;
+	margin-bottom: clamp(30px, 5vw, 54px);
+	text-align: center;
+}
+
+.offers-list {
+	display: grid;
+	gap: clamp(26px, 5vw, 44px);
+}
+
+.offer-card {
+	display: grid;
+	grid-template-columns: minmax(260px, 0.92fr) minmax(0, 1.08fr);
+	align-items: stretch;
+	border: 1px solid rgba(25, 90, 72, 0.18);
+	border-radius: 8px;
+	background: rgba(255, 255, 240, 0.96);
+	box-shadow: 0 22px 54px rgba(17, 17, 17, 0.07);
+	overflow: hidden;
+}
+
+.offer-card-reverse .offer-card-visual {
+	order: 2;
+}
+
+.offer-card-visual {
+	min-height: 370px;
+	background:
+		linear-gradient(135deg, rgba(25, 90, 72, 0.94), rgba(17, 17, 17, 0.94));
+}
+
+.offer-card-visual img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	min-height: 370px;
+	object-fit: cover;
+}
+
+.offer-card-fallback {
+	display: grid;
+	place-items: center;
+	width: 100%;
+	height: 100%;
+	min-height: 370px;
+	padding: 28px;
+	border: 14px solid rgba(255, 255, 240, 0.08);
+	color: var(--gold);
+	font-family: 'Ballet', 'Brush Script MT', cursive;
+	font-size: clamp(2.6rem, 5vw, 4rem);
+	line-height: 1;
+	text-align: center;
+}
+
+.offer-card-content {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	min-width: 0;
+	padding: clamp(28px, 5vw, 56px);
+}
+
+.offer-status,
+.offer-description,
+.offer-validity,
+.offer-specialists,
+.offer-includes p {
+	margin: 0;
+}
+
+.offer-status {
+	color: var(--gold);
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: 0.88rem;
+	font-weight: 700;
+	letter-spacing: 0.16em;
+	text-transform: uppercase;
+}
+
+.offer-card-content h3 {
+	margin: 10px 0 0;
+	color: #573e2e;
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: clamp(2rem, 4.3vw, 3.75rem);
+	font-weight: 500;
+	line-height: 0.98;
+}
+
+.offer-description {
+	max-width: 58ch;
+	margin-top: 18px;
+	color: rgba(17, 17, 17, 0.76);
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: 1.12rem;
+	line-height: 1.62;
+}
+
+.offer-meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin-top: 24px;
+}
+
+.offer-meta span {
+	display: inline-flex;
+	align-items: center;
+	min-height: 42px;
+	padding: 9px 14px;
+	border: 1px solid rgba(25, 90, 72, 0.24);
+	border-radius: 6px;
+	color: var(--emerald);
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: 1.02rem;
+	font-weight: 700;
+}
+
+.offer-includes {
+	margin-top: 24px;
+}
+
+.offer-includes p,
+.offer-validity,
+.offer-specialists {
+	color: rgba(17, 17, 17, 0.64);
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: 0.98rem;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.offer-includes ul {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 10px 0 0;
+	padding: 0;
+	list-style: none;
+}
+
+.offer-includes li {
+	padding: 8px 11px;
+	border-left: 2px solid var(--gold);
+	background: rgba(198, 161, 91, 0.1);
+	color: #573e2e;
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: 1rem;
+	line-height: 1.2;
+}
+
+.offer-validity {
+	margin-top: 24px;
+	color: var(--emerald);
+}
+
+.offer-specialists {
+	margin-top: 8px;
+	text-transform: none;
+	letter-spacing: 0;
+}
+
+.offer-cta {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	align-self: flex-start;
+	min-height: 46px;
+	margin-top: 26px;
+	padding: 12px 18px;
+	border: 1px solid var(--black);
+	border-radius: 6px;
+	background: var(--black);
+	color: var(--ivory);
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: 0.96rem;
+	font-weight: 700;
+	letter-spacing: 0.1em;
+	line-height: 1.1;
+	text-decoration: none;
+	text-transform: uppercase;
+	transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
+button.offer-cta {
+	cursor: pointer;
+}
+
+.offer-cta:hover,
+.offer-cta:focus-visible {
+	border-color: var(--gold);
+	background: var(--gold);
+	color: var(--black);
+}
+
+.offer-cta-disabled {
+	border-color: rgba(17, 17, 17, 0.18);
+	background: rgba(17, 17, 17, 0.12);
+	color: rgba(17, 17, 17, 0.62);
+}
+
+.offer-cta-disabled:hover {
+	border-color: rgba(17, 17, 17, 0.18);
+	background: rgba(17, 17, 17, 0.12);
+	color: rgba(17, 17, 17, 0.62);
+}
+
+.offer-booking-panel {
+	grid-column: 1 / -1;
+	display: grid;
+	grid-template-columns: minmax(240px, 0.78fr) minmax(0, 1.22fr);
+	gap: clamp(20px, 4vw, 34px);
+	padding: clamp(24px, 5vw, 42px);
+	border-top: 1px solid rgba(25, 90, 72, 0.16);
+	background: rgba(250, 246, 228, 0.72);
+}
+
+.offer-booking-panel[hidden] {
+	display: none;
+}
+
+.offer-booking-heading {
+	display: grid;
+	align-content: start;
+	gap: 8px;
+}
+
+.offer-booking-heading h4,
+.offer-booking-heading p {
+	margin: 0;
+}
+
+.offer-booking-heading h4 {
+	color: #573e2e;
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: clamp(1.7rem, 3vw, 2.45rem);
+	font-weight: 500;
+	line-height: 1;
+}
+
+.offer-booking-heading p:not(.booking-kicker) {
+	color: var(--emerald);
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: 1.08rem;
+	font-weight: 700;
+}
+
+.offer-booking-controls {
+	align-self: start;
+}
+
+.offer-booking-slots {
+	grid-column: 2;
+}
+
+.offer-booking-details {
+	grid-column: 1 / -1;
+}
+
+.offer-booking-confirmation h2 {
+	font-size: clamp(1.5rem, 3vw, 2.1rem);
+	line-height: 1.12;
+}
+
+.offers-empty,
+.offers-surprise,
+.offers-final-cta {
+	text-align: center;
+}
+
+.offers-empty {
+	max-width: 680px;
+	margin: 0 auto;
+	padding: clamp(34px, 6vw, 56px);
+	border: 1px solid rgba(25, 90, 72, 0.18);
+	border-radius: 8px;
+}
+
+.offers-empty h3,
+.offers-surprise h2,
+.offers-final-cta h2 {
+	margin: 0;
+	color: #573e2e;
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-weight: 500;
+	line-height: 1.05;
+}
+
+.offers-empty h3 {
+	font-size: clamp(1.8rem, 4vw, 2.8rem);
+}
+
+.offers-empty p,
+.offers-surprise p,
+.offers-final-cta p {
+	max-width: 56ch;
+	margin: 14px auto 0;
+	color: rgba(17, 17, 17, 0.76);
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: 1.16rem;
+	line-height: 1.55;
+}
+
+.offers-empty .offer-cta,
+.offers-surprise .offer-cta,
+.offers-final-cta .offer-cta {
+	align-self: center;
+}
+
+.offers-surprise {
+	padding: clamp(42px, 7vw, 76px) clamp(22px, 5vw, 70px);
+	border: 1px solid rgba(198, 161, 91, 0.44);
+	border-radius: 8px;
+	background: var(--black);
+}
+
+.offers-surprise h2 {
+	margin-top: 8px;
+	color: var(--ivory);
+	font-size: clamp(1.95rem, 4.5vw, 3.4rem);
+}
+
+.offers-surprise p {
+	color: rgba(255, 255, 240, 0.78);
+}
+
+.offer-cta-light {
+	border-color: var(--gold);
+	background: transparent;
+	color: var(--gold);
+}
+
+.offer-cta-light:hover,
+.offer-cta-light:focus-visible {
+	background: var(--gold);
+	color: var(--black);
+}
+
+.offers-final-cta {
+	padding: clamp(54px, 8vw, 92px) 0 clamp(72px, 10vw, 128px);
+}
+
+.offers-final-cta h2 {
+	font-size: clamp(2rem, 5vw, 4rem);
+}
+
 .menu-toggle {
 	display: none;
 	align-items: center;
@@ -2760,6 +3215,22 @@ body {
 	.public-service-card {
 		grid-template-columns: 1fr;
 	}
+	.offers-intro,
+	.offer-card {
+		grid-template-columns: 1fr;
+	}
+	.offer-card-reverse .offer-card-visual {
+		order: 0;
+	}
+	.offer-booking-panel {
+		grid-template-columns: 1fr;
+	}
+	.offer-booking-slots {
+		grid-column: auto;
+	}
+	.offers-intro-visual {
+		max-width: 320px;
+	}
 	.public-service-gallery,
 	.gallery-image-button,
 	.gallery-image-button img {
@@ -2815,6 +3286,43 @@ body {
 	}
 	.destination-about-illustration {
 		padding: 16px;
+	}
+	.offers-intro,
+	.offers-current,
+	.offers-surprise,
+	.offers-final-cta {
+		width: min(100% - 28px, 1180px);
+	}
+	.offers-intro {
+		padding-top: 42px;
+	}
+	.offers-intro-visual {
+		max-width: none;
+	}
+	.offer-card-content {
+		padding: 26px 18px 30px;
+	}
+	.offer-card-visual,
+	.offer-card-visual img,
+	.offer-card-fallback {
+		min-height: 250px;
+	}
+	.offer-card-content h3 {
+		font-size: clamp(1.85rem, 10vw, 2.7rem);
+	}
+	.offer-meta {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+	.offer-meta span,
+	.offer-cta {
+		width: 100%;
+	}
+	.offer-cta {
+		align-self: stretch;
+	}
+	.offers-surprise {
+		padding: 34px 18px;
 	}
 	.beauty-game {
 		margin-top: -106px;

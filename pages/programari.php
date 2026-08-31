@@ -1,3 +1,8 @@
+<?php
+$initialOfferId = filter_var($_GET['offer_id'] ?? null, FILTER_VALIDATE_INT, [
+	'options' => ['min_range' => 1],
+]);
+?>
 <!DOCTYPE html>
 <html lang="ro">
 <head>
@@ -18,9 +23,14 @@
 				<p class="booking-text">Alege serviciul, specialistul și intervalul dorit, apoi trimite cererea de programare.</p>
 			</div>
 
-			<div class="booking-panel" data-booking-availability>
+			<div class="booking-panel" data-booking-availability data-initial-offer-id="<?php echo $initialOfferId !== false ? (int) $initialOfferId : 0; ?>">
 				<form class="booking-form" data-booking-form>
-					<label>
+					<div class="booking-offer-summary" data-booking-offer-summary hidden>
+						<p class="booking-kicker">OFERTA</p>
+						<h2 data-booking-offer-title></h2>
+					</div>
+
+					<label data-booking-service-field>
 						<span>Serviciu</span>
 						<select name="service_id" data-booking-service required>
 							<option value="">Se încarcă serviciile...</option>
@@ -55,7 +65,7 @@
 						<p class="booking-summary-label">Rezumat</p>
 						<dl class="booking-summary-list">
 							<div>
-								<dt>Serviciu</dt>
+								<dt data-booking-summary-bookable-label>Serviciu</dt>
 								<dd data-booking-summary-service>-</dd>
 							</div>
 							<div>

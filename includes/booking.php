@@ -284,3 +284,41 @@ function isBookingSlotAvailable(
 
 	return !bookingSlotHasOverlaps($pdo, $specialistId, $candidateStart, $candidateEnd, $lock, $excludedAppointmentId);
 }
+
+function getAvailableBookingSlots(PDO $pdo, int $specialistId, DateTimeImmutable $date, int $durationMinutes): array
+{
+	if ($durationMinutes < 5 || $durationMinutes > 480) {
+		return [];
+	}
+
+	$schedules = getSpecialistSchedulesForDate($pdo, $specialistId, $date);
+
+	if ($schedules === []) {
+		return [];
+	}
+
+	$slotIncrement = new DateInterval('PT30M');
+	$bookingDuration = new DateInterval('PT' . $durationMinutes . 'M');
+	$slots = [];
+
+	foreach ($schedules as $schedule) {
+		[$startHour, $startMinute] = array_map('intval', explode(':', (string) $schedule['start_time']));
+		[$endHour, $endMinute] = array_map('intval', explode(':', (string) $schedule['end_time']));
+
+		$scheduleStart = $date->setTime($startHour, $startMinute);
+		$scheduleEnd = $date->setTime($endHour, $endMinute);
+
+		for ($candidateStart = $scheduleStart; $candidateStart->add($bookingDuration) <= $scheduleEnd; $candidateStart = $candidateStart->add($slotIncrement)) {
+			$candidateEnd = $candidateStart->add($bookingDuration);
+
+			if (isBookingSlotAvailable($pdo, $specialistId, $candidateStart, $candidateEnd)) {
+				$slots[] = $candidateStart->format('H:i');
+			}
+		}
+	}
+
+	$slots = array_values(array_unique($slots));
+	sort($slots);
+
+	return $slots;
+}

@@ -6,6 +6,7 @@ header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/../includes/api-response.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/booking.php';
+require_once __DIR__ . '/../includes/offer-helpers.php';
 
 setSalonTimezone();
 
@@ -18,7 +19,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $payload = readJsonRequestBody();
 
+$bookingType = isset($payload['booking_type']) ? strtolower(trim((string) $payload['booking_type'])) : 'service';
 $serviceId = filter_var($payload['service_id'] ?? null, FILTER_VALIDATE_INT, [
+	'options' => ['min_range' => 1],
+]);
+$offerId = filter_var($payload['offer_id'] ?? null, FILTER_VALIDATE_INT, [
 	'options' => ['min_range' => 1],
 ]);
 $specialistId = filter_var($payload['specialist_id'] ?? null, FILTER_VALIDATE_INT, [
@@ -35,8 +40,16 @@ $date = $dateInput !== '' ? parseBookingDate($dateInput) : null;
 $candidateStart = $date !== null ? parseBookingTime($date, $timeInput) : null;
 $errors = [];
 
-if ($serviceId === false) {
+if (!in_array($bookingType, ['service', 'offer'], true)) {
+	$errors['booking_type'] = 'Tipul programarii nu este valid.';
+}
+
+if ($bookingType === 'service' && $serviceId === false) {
 	$errors['service_id'] = 'Te rugăm să alegi un serviciu valid.';
+}
+
+if ($bookingType === 'offer' && $offerId === false) {
+	$errors['offer_id'] = 'Te rugam sa alegi o oferta valida.';
 }
 
 if ($specialistId === false) {
@@ -98,7 +111,9 @@ try {
 
 	$pdo->beginTransaction();
 
-	$bookingContext = getBookingContext($pdo, $serviceId, $specialistId, true);
+	$bookingContext = $bookingType === 'offer'
+		? getOfferBookingContext($pdo, $offerId, $specialistId, $date, true)
+		: getBookingContext($pdo, $serviceId, $specialistId, true);
 
 	if ($bookingContext === null) {
 		$pdo->rollBack();
@@ -136,7 +151,9 @@ try {
 			customer_name,
 			customer_email,
 			customer_phone,
+			booking_type,
 			service_id,
+			offer_id,
 			specialist_id,
 			start_datetime,
 			end_datetime,
@@ -150,7 +167,9 @@ try {
 			:customer_name,
 			:customer_email,
 			:customer_phone,
+			:booking_type,
 			:service_id,
+			:offer_id,
 			:specialist_id,
 			:start_datetime,
 			:end_datetime,
@@ -166,7 +185,9 @@ try {
 		'customer_name' => $customerName,
 		'customer_email' => $customerEmail,
 		'customer_phone' => $customerPhone,
-		'service_id' => $serviceId,
+		'booking_type' => $bookingType,
+		'service_id' => $bookingType === 'service' ? $serviceId : null,
+		'offer_id' => $bookingType === 'offer' ? $offerId : null,
 		'specialist_id' => $specialistId,
 		'start_datetime' => $candidateStart->format('Y-m-d H:i:s'),
 		'end_datetime' => $candidateEnd->format('Y-m-d H:i:s'),

@@ -66,6 +66,10 @@ $appointmentSummary = $summaryStatement->fetch() ?: [
 					<span>Programare manuală</span>
 					<strong>Adaugă o programare confirmată din telefon, Instagram sau direct</strong>
 				</a>
+				<a class="admin-card-link" href="offers.php">
+					<span>Oferte</span>
+					<strong>Creeaza oferte bookable cu durata, pret si specialisti eligibili</strong>
+				</a>
 				<a class="admin-card-link" href="blocked-slots.php">
 					<span>Timp blocat</span>
 					<strong>Blochează intervale fără programare de client</strong>

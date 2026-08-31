@@ -47,17 +47,20 @@ $statement = $pdo->prepare(
 		a.end_datetime,
 		a.price_at_booking,
 		a.duration_minutes_at_booking,
+		a.booking_type,
 		a.status,
 		a.source,
 		a.notes,
 		a.admin_note,
 		a.created_at,
 		sv.name AS service_name,
+		ofr.title AS offer_title,
 		sp.name AS specialist_name,
 		u.name AS account_name,
 		u.email AS account_email
 	 FROM appointments a
-	 INNER JOIN services sv ON sv.id = a.service_id
+	 LEFT JOIN services sv ON sv.id = a.service_id
+	 LEFT JOIN offers ofr ON ofr.id = a.offer_id
 	 INNER JOIN specialists sp ON sp.id = a.specialist_id
 	 LEFT JOIN users u ON u.id = a.customer_user_id
 	 WHERE a.id = :id' . $detailWhereSql . '
@@ -137,8 +140,12 @@ $activeRoute = $isAdmin ? 'appointments.php' : 'my-appointments.php';
 					<h3>Programare</h3>
 					<dl>
 						<div>
-							<dt>Serviciu</dt>
-							<dd><?php echo adminEscape((string) $appointment['service_name']); ?></dd>
+							<dt>Tip</dt>
+							<dd><?php echo (string) ($appointment['booking_type'] ?? 'service') === 'offer' ? 'Oferta' : 'Serviciu'; ?></dd>
+						</div>
+						<div>
+							<dt><?php echo (string) ($appointment['booking_type'] ?? 'service') === 'offer' ? 'Oferta' : 'Serviciu'; ?></dt>
+							<dd><?php echo adminEscape((string) (($appointment['booking_type'] ?? 'service') === 'offer' ? $appointment['offer_title'] : $appointment['service_name'])); ?></dd>
 						</div>
 						<div>
 							<dt>Specialist</dt>

@@ -231,13 +231,16 @@ $statement = $pdo->prepare(
 		a.end_datetime,
 		a.price_at_booking,
 		a.duration_minutes_at_booking,
+		a.booking_type,
 		a.status,
 		a.source,
 		a.created_at,
 		sv.name AS service_name,
+		ofr.title AS offer_title,
 		sp.name AS specialist_name
 	 FROM appointments a
-	 INNER JOIN services sv ON sv.id = a.service_id
+	 LEFT JOIN services sv ON sv.id = a.service_id
+	 LEFT JOIN offers ofr ON ofr.id = a.offer_id
 	 INNER JOIN specialists sp ON sp.id = a.specialist_id
 	 $whereSql
 	 ORDER BY
@@ -329,7 +332,8 @@ $currentPath = 'appointments.php' . $currentQuery;
 								<th>Client</th>
 								<th>Email</th>
 								<th>Telefon</th>
-								<th>Serviciu</th>
+								<th>Tip</th>
+								<th>Programare</th>
 								<th>Specialist</th>
 								<th>Data</th>
 								<th>Start</th>
@@ -350,7 +354,8 @@ $currentPath = 'appointments.php' . $currentQuery;
 									<td data-label="Client"><?php echo adminEscape((string) $appointment['customer_name']); ?></td>
 									<td data-label="Email"><?php echo adminEscape((string) $appointment['customer_email']); ?></td>
 									<td data-label="Telefon"><?php echo adminEscape((string) ($appointment['customer_phone'] ?? '-')); ?></td>
-									<td data-label="Serviciu"><?php echo adminEscape((string) $appointment['service_name']); ?></td>
+									<td data-label="Tip"><?php echo (string) ($appointment['booking_type'] ?? 'service') === 'offer' ? 'Oferta' : 'Serviciu'; ?></td>
+									<td data-label="Programare"><?php echo adminEscape((string) (($appointment['booking_type'] ?? 'service') === 'offer' ? $appointment['offer_title'] : $appointment['service_name'])); ?></td>
 									<td data-label="Specialist"><?php echo adminEscape((string) $appointment['specialist_name']); ?></td>
 									<td data-label="Data"><?php echo adminEscape(adminFormatDate((string) $appointment['start_datetime'], 'd.m.Y')); ?></td>
 									<td data-label="Start"><?php echo adminEscape(adminFormatDate((string) $appointment['start_datetime'], 'H:i')); ?></td>

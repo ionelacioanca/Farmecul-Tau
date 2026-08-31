@@ -66,6 +66,7 @@ function renderAdminHeader(string $title, string $activeRoute, string $csrfToken
 	if ($role === 'admin') {
 		$navigation += [
 			'appointments.php' => 'Toate programarile',
+			'offers.php' => 'Oferte',
 			'blocked-slots.php' => 'Timp blocat',
 			'promo-codes.php' => 'Coduri promotionale',
 			'add-specialist.php' => 'Adauga specialist',
