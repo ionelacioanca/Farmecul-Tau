@@ -19,10 +19,22 @@ try {
 	require_once __DIR__ . '/../includes/db.php';
 
 	$statement = $pdo->prepare(
-		'SELECT id, name, description, category
-		 FROM services
-		 WHERE active = 1
-		 ORDER BY name ASC'
+		'SELECT DISTINCT sv.id, sv.name, sv.description, sv.category
+		 FROM services sv
+		 INNER JOIN specialist_services ss ON ss.service_id = sv.id
+		 INNER JOIN specialists sp ON sp.id = ss.specialist_id
+		 WHERE sv.active = 1
+			AND ss.active = 1
+			AND ss.price IS NOT NULL
+			AND ss.price >= 0
+			AND ss.duration_minutes IS NOT NULL
+			AND ss.duration_minutes BETWEEN 5 AND 480
+			AND sp.active = 1
+			AND sp.specialization = CASE sv.category
+				WHEN \'hairstyle\' THEN \'hairstylist\'
+				WHEN \'nails\' THEN \'nails\'
+			END
+		 ORDER BY sv.name ASC'
 	);
 	$statement->execute();
 

@@ -21,6 +21,9 @@ if (bookingAvailability) {
 	const specialists = new Map();
 	let selectedSlot = '';
 	let authenticatedUser = null;
+	const initialParams = new URLSearchParams(window.location.search);
+	const initialServiceId = initialParams.get('service_id') || '';
+	const initialSpecialistId = initialParams.get('specialist_id') || '';
 
 	const today = new Date();
 	const todayValue = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
@@ -226,6 +229,10 @@ if (bookingAvailability) {
 				serviceSelect.append(new Option(service.name, service.id));
 			});
 
+			if (initialServiceId && services.has(initialServiceId)) {
+				serviceSelect.value = initialServiceId;
+			}
+
 			setStatus('Alege un serviciu, un specialist și o dată.');
 		} catch (error) {
 			serviceSelect.replaceChildren(new Option('Serviciile nu au putut fi încărcate', ''));
@@ -257,7 +264,9 @@ if (bookingAvailability) {
 				specialistSelect.append(new Option(label, specialist.id));
 			});
 
-			if (data.specialists.length === 1) {
+			if (initialSpecialistId && data.specialists.some((specialist) => String(specialist.id) === initialSpecialistId)) {
+				specialistSelect.value = initialSpecialistId;
+			} else if (data.specialists.length === 1) {
 				specialistSelect.value = String(data.specialists[0].id);
 			}
 
@@ -399,6 +408,17 @@ if (bookingAvailability) {
 	dateInput.addEventListener('change', loadAvailability);
 
 	resetSpecialists();
-	loadAuthStatus();
-	loadServices();
+	const initBookingForm = async () => {
+		await Promise.all([loadAuthStatus(), loadServices()]);
+
+		if (serviceSelect.value) {
+			await loadSpecialists();
+
+			if (specialistSelect.value) {
+				await loadAvailability();
+			}
+		}
+	};
+
+	initBookingForm();
 }

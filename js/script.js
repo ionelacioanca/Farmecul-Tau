@@ -13,6 +13,16 @@ if (menuToggle && siteNavigation) {
 		siteNavigation.classList.toggle('is-open', !isOpen);
 	});
 
+	siteNavigation.querySelectorAll('.nav-submenu-toggle').forEach((button) => {
+		button.addEventListener('click', () => {
+			const listItem = button.closest('.has-submenu');
+			const isOpen = button.getAttribute('aria-expanded') === 'true';
+
+			button.setAttribute('aria-expanded', String(!isOpen));
+			listItem?.classList.toggle('is-open', !isOpen);
+		});
+	});
+
 	siteNavigation.querySelectorAll('a').forEach((link) => link.addEventListener('click', closeMenu));
 	document.addEventListener('keydown', (event) => {
 		if (event.key === 'Escape') closeMenu();
