@@ -140,7 +140,7 @@ try {
 	}
 
 	$durationMinutes = (int) $bookingContext['duration_minutes'];
-	$priceAtBooking = (float) $bookingContext['price'];
+	$priceAtBooking = $bookingContext['price'] !== null ? (float) $bookingContext['price'] : null;
 
 	if ($durationMinutes <= 0) {
 		$pdo->rollBack();
@@ -207,7 +207,7 @@ try {
 		'specialist_id' => $specialistId,
 		'start_datetime' => $candidateStart->format('Y-m-d H:i:s'),
 		'end_datetime' => $candidateEnd->format('Y-m-d H:i:s'),
-		'price_at_booking' => number_format($priceAtBooking, 2, '.', ''),
+		'price_at_booking' => $priceAtBooking !== null ? number_format($priceAtBooking, 2, '.', '') : null,
 		'duration_minutes_at_booking' => $durationMinutes,
 		'notes' => $notes !== '' ? $notes : null,
 	]);

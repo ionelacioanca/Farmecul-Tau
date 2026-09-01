@@ -25,8 +25,6 @@ try {
 		 INNER JOIN specialists sp ON sp.id = ss.specialist_id
 		 WHERE sv.active = 1
 			AND ss.active = 1
-			AND ss.price IS NOT NULL
-			AND ss.price >= 0
 			AND ss.duration_minutes IS NOT NULL
 			AND ss.duration_minutes BETWEEN 5 AND 480
 			AND sp.active = 1

@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 				]);
 
 				$pdo->commit();
-				$message = 'Datele contului au fost actualizate.';
+				$message = 'Datele contului au fost actualizate. La urmatoarea autentificare foloseste noul email.';
 				$dashboardUser['name'] = $values['name'];
 				$dashboardUser['email'] = $values['email'];
 				$currentSpecialist = getCurrentSpecialist($pdo, $dashboardUser);

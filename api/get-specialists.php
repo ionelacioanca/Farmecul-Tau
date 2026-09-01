@@ -62,8 +62,6 @@ try {
 				AND sv.active = 1
 				AND sv.id = :service_id
 				AND ss.active = 1
-				AND ss.price IS NOT NULL
-				AND ss.price >= 0
 				AND ss.duration_minutes IS NOT NULL
 				AND ss.duration_minutes BETWEEN 5 AND 480
 				AND sp.specialization = CASE sv.category

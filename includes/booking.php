@@ -88,8 +88,7 @@ function getBookingContext(PDO $pdo, int $serviceId, int $specialistId, bool $lo
 			AND sv.active = 1
 			AND sp.active = 1
 			AND ss.active = 1
-			AND ss.price IS NOT NULL
-			AND ss.price >= 0
+			AND (ss.price IS NULL OR ss.price >= 0)
 			AND ss.duration_minutes IS NOT NULL
 			AND ss.duration_minutes BETWEEN 5 AND 480
 			AND sp.specialization = CASE sv.category

@@ -75,7 +75,7 @@ try {
 			'id' => (int) $bookingContext['specialist_id'],
 			'name' => (string) $bookingContext['specialist_name'],
 		],
-		'price' => (float) $bookingContext['price'],
+		'price' => $bookingContext['price'] !== null ? (float) $bookingContext['price'] : null,
 		'duration_minutes' => $durationMinutes,
 		'slots' => $slots,
 	]);
