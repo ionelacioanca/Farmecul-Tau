@@ -9,6 +9,22 @@ function farmeculEmailEscape(string $value): string
 	return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
 }
 
+function farmeculAppUrl(?string $path = null): ?string
+{
+	farmeculLoadEnvFile();
+	$appUrl = rtrim((string) (getenv('APP_URL') ?: ''), '/');
+
+	if ($appUrl === '') {
+		return null;
+	}
+
+	if ($path === null || $path === '') {
+		return $appUrl;
+	}
+
+	return $appUrl . '/' . ltrim($path, '/');
+}
+
 function farmeculFormatEmailDate(string $dateTime): string
 {
 	try {
@@ -60,6 +76,7 @@ function farmeculLoadAppointmentNotification(PDO $pdo, int $appointmentId): ?arr
 	$statement = $pdo->prepare(
 		'SELECT
 			a.id,
+			a.customer_user_id,
 			a.customer_name,
 			a.customer_email,
 			a.booking_type,
@@ -67,14 +84,18 @@ function farmeculLoadAppointmentNotification(PDO $pdo, int $appointmentId): ?arr
 			a.price_at_booking,
 			a.duration_minutes_at_booking,
 			a.status,
+			a.notes,
 			a.admin_note,
 			sv.name AS service_name,
 			ofr.title AS offer_title,
-			sp.name AS specialist_name
+			sp.name AS specialist_name,
+			sp.email AS specialist_email,
+			u.email AS specialist_user_email
 		 FROM appointments a
 		 LEFT JOIN services sv ON sv.id = a.service_id
 		 LEFT JOIN offers ofr ON ofr.id = a.offer_id
 		 INNER JOIN specialists sp ON sp.id = a.specialist_id
+		 LEFT JOIN users u ON u.id = sp.user_id
 		 WHERE a.id = :id
 		 LIMIT 1'
 	);
@@ -84,23 +105,52 @@ function farmeculLoadAppointmentNotification(PDO $pdo, int $appointmentId): ?arr
 	return $appointment !== false ? $appointment : null;
 }
 
-function farmeculAppointmentEmailDetails(array $appointment): array
+function farmeculAppointmentServiceOrOfferLabel(array $appointment): string
 {
-	$isOffer = (string) ($appointment['booking_type'] ?? 'service') === 'offer';
-	$title = $isOffer ? (string) ($appointment['offer_title'] ?? '') : (string) ($appointment['service_name'] ?? '');
-
-	return [
-		$isOffer ? 'Ofertă' : 'Serviciu' => $title !== '' ? $title : '-',
-		'Specialist' => (string) ($appointment['specialist_name'] ?? '-'),
-		'Data' => farmeculFormatEmailDate((string) $appointment['start_datetime']),
-		'Ora' => farmeculFormatEmailTime((string) $appointment['start_datetime']),
-		'Durată' => (int) $appointment['duration_minutes_at_booking'] . ' min',
-		$isOffer ? 'Preț ofertă' : 'Preț' => farmeculFormatEmailPrice($appointment['price_at_booking'] !== null ? (string) $appointment['price_at_booking'] : null),
-	];
+	return (string) ($appointment['booking_type'] ?? 'service') === 'offer'
+		? 'Ofertă'
+		: 'Serviciu';
 }
 
-function farmeculBuildAppointmentHtmlEmail(string $heading, array $paragraphs, array $details, ?string $actionUrl = null): string
+function farmeculAppointmentServiceOrOfferName(array $appointment): string
 {
+	$isOffer = (string) ($appointment['booking_type'] ?? 'service') === 'offer';
+	$name = $isOffer
+		? (string) ($appointment['offer_title'] ?? '')
+		: (string) ($appointment['service_name'] ?? '');
+
+	return $name !== '' ? $name : '-';
+}
+
+function farmeculAppointmentEmailDetails(array $appointment, bool $includeCustomer = false): array
+{
+	$typeLabel = farmeculAppointmentServiceOrOfferLabel($appointment);
+	$details = [];
+
+	if ($includeCustomer) {
+		$details['Clientă'] = (string) ($appointment['customer_name'] ?? '-');
+		$details['Tip programare'] = $typeLabel;
+	}
+
+	$details[$typeLabel] = farmeculAppointmentServiceOrOfferName($appointment);
+	$details['Specialist'] = (string) ($appointment['specialist_name'] ?? '-');
+	$details['Data'] = farmeculFormatEmailDate((string) $appointment['start_datetime']);
+	$details['Ora'] = farmeculFormatEmailTime((string) $appointment['start_datetime']);
+	$details['Durată'] = (int) $appointment['duration_minutes_at_booking'] . ' min';
+	$details[$typeLabel === 'Ofertă' ? 'Preț ofertă' : 'Preț'] = farmeculFormatEmailPrice(
+		$appointment['price_at_booking'] !== null ? (string) $appointment['price_at_booking'] : null
+	);
+
+	return $details;
+}
+
+function farmeculBuildAppointmentHtmlEmail(
+	string $heading,
+	array $paragraphs,
+	array $details,
+	?string $actionUrl = null,
+	string $actionLabel = 'Deschide'
+): string {
 	$detailRows = '';
 
 	foreach ($details as $label => $value) {
@@ -124,7 +174,7 @@ function farmeculBuildAppointmentHtmlEmail(string $heading, array $paragraphs, a
 
 	if ($actionUrl !== null && filter_var($actionUrl, FILTER_VALIDATE_URL)) {
 		$buttonHtml = '<p style="margin:24px 0 0;">'
-			. '<a href="' . farmeculEmailEscape($actionUrl) . '" style="display:inline-block;padding:12px 18px;background:#195a48;color:#fffff0;text-decoration:none;border-radius:6px;font-weight:700;">Alege alt interval</a>'
+			. '<a href="' . farmeculEmailEscape($actionUrl) . '" style="display:inline-block;padding:12px 18px;background:#195a48;color:#fffff0;text-decoration:none;border-radius:6px;font-weight:700;">' . farmeculEmailEscape($actionLabel) . '</a>'
 			. '</p>';
 	}
 
@@ -142,12 +192,17 @@ function farmeculBuildAppointmentHtmlEmail(string $heading, array $paragraphs, a
 		. $detailRows
 		. '</table>'
 		. $buttonHtml
-		. '<p style="margin:24px 0 0;color:#6b5a44;font-size:14px;line-height:1.5;">Acesta este un email tranzacțional trimis pentru programarea ta la Farmecul Tău.</p>'
+		. '<p style="margin:24px 0 0;color:#6b5a44;font-size:14px;line-height:1.5;">Acesta este un email tranzacțional trimis pentru programarea de la Farmecul Tău.</p>'
 		. '</td></tr></table></td></tr></table></body></html>';
 }
 
-function farmeculBuildAppointmentTextEmail(string $heading, array $paragraphs, array $details, ?string $actionUrl = null): string
-{
+function farmeculBuildAppointmentTextEmail(
+	string $heading,
+	array $paragraphs,
+	array $details,
+	?string $actionUrl = null,
+	string $actionLabel = 'Deschide'
+): string {
 	$lines = ['Farmecul Tău', $heading, ''];
 
 	foreach ($paragraphs as $paragraph) {
@@ -163,96 +218,156 @@ function farmeculBuildAppointmentTextEmail(string $heading, array $paragraphs, a
 
 	if ($actionUrl !== null && filter_var($actionUrl, FILTER_VALIDATE_URL)) {
 		$lines[] = '';
-		$lines[] = 'Alege alt interval: ' . $actionUrl;
+		$lines[] = $actionLabel . ': ' . $actionUrl;
 	}
 
 	return implode("\n", $lines);
 }
 
-function farmeculSendAppointmentNotification(PDO $pdo, int $appointmentId, string $type): bool
+function farmeculRenderAppointmentEmailTemplate(string $templateName, array $variables): ?array
+{
+	$templatePath = __DIR__ . '/email-templates/' . $templateName . '.php';
+
+	if (!is_file($templatePath)) {
+		error_log('Farmecul Tau appointment mail skipped: template not found: ' . $templateName);
+		return null;
+	}
+
+	$template = (static function (string $templatePath, array $variables): mixed {
+		extract($variables, EXTR_SKIP);
+		return require $templatePath;
+	})($templatePath, $variables);
+
+	if (!is_array($template)) {
+		error_log('Farmecul Tau appointment mail skipped: invalid template: ' . $templateName);
+		return null;
+	}
+
+	$subject = (string) ($template['subject'] ?? '');
+	$heading = (string) ($template['heading'] ?? '');
+	$paragraphs = $template['paragraphs'] ?? [];
+	$details = $template['details'] ?? [];
+	$actionUrl = isset($template['action_url']) ? (string) $template['action_url'] : null;
+	$actionLabel = (string) ($template['action_label'] ?? 'Deschide');
+
+	if ($subject === '' || $heading === '' || !is_array($paragraphs) || !is_array($details)) {
+		error_log('Farmecul Tau appointment mail skipped: incomplete template: ' . $templateName);
+		return null;
+	}
+
+	return [
+		'subject' => $subject,
+		'html' => farmeculBuildAppointmentHtmlEmail($heading, $paragraphs, $details, $actionUrl, $actionLabel),
+		'text' => farmeculBuildAppointmentTextEmail($heading, $paragraphs, $details, $actionUrl, $actionLabel),
+	];
+}
+
+function farmeculSendAppointmentEmail(
+	PDO $pdo,
+	int $appointmentId,
+	string $templateName,
+	string $toEmail,
+	string $toName,
+	array $variables
+): bool {
+	if (!filter_var($toEmail, FILTER_VALIDATE_EMAIL)) {
+		error_log('Farmecul Tau appointment mail skipped: invalid recipient email. Appointment ID: ' . $appointmentId);
+		return false;
+	}
+
+	$message = farmeculRenderAppointmentEmailTemplate($templateName, $variables);
+
+	if ($message === null) {
+		return false;
+	}
+
+	return sendMail($toEmail, $toName, $message['subject'], $message['html'], $message['text']);
+}
+
+function sendAppointmentRequestSpecialistEmail(PDO $pdo, int $appointmentId): bool
 {
 	$appointment = farmeculLoadAppointmentNotification($pdo, $appointmentId);
 
 	if ($appointment === null) {
-		error_log('Farmecul Tau appointment mail skipped: appointment not found.');
+		error_log('Farmecul Tau specialist request mail skipped: appointment not found.');
 		return false;
 	}
 
-	$email = (string) ($appointment['customer_email'] ?? '');
-	$name = (string) ($appointment['customer_name'] ?? '');
+	$specialistEmail = trim((string) ($appointment['specialist_user_email'] ?? ''));
 
-	if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-		error_log('Farmecul Tau appointment mail skipped: invalid appointment customer_email.');
+	if ($specialistEmail === '') {
+		$specialistEmail = trim((string) ($appointment['specialist_email'] ?? ''));
+	}
+
+	if (!filter_var($specialistEmail, FILTER_VALIDATE_EMAIL)) {
+		error_log('Farmecul Tau specialist request mail skipped: specialist has no usable email. Appointment ID: ' . $appointmentId);
 		return false;
 	}
 
-	$details = farmeculAppointmentEmailDetails($appointment);
-	$subject = '';
-	$heading = '';
-	$paragraphs = [];
-	$actionUrl = null;
+	$details = farmeculAppointmentEmailDetails($appointment, true);
+	$customerNote = trim((string) ($appointment['notes'] ?? ''));
 
-	if ($type === 'pending') {
-		$subject = 'Am primit solicitarea ta de programare | Farmecul Tău';
-		$heading = 'Am primit solicitarea ta de programare';
-		$paragraphs = [
-			'Bună, ' . $name . ',',
-			'Am primit solicitarea ta de programare.',
-			'Programarea este momentan în așteptarea confirmării salonului.',
-			'Solicitarea nu este încă confirmată.',
-		];
-	} elseif ($type === 'approved') {
-		$subject = 'Programarea ta a fost confirmată | Farmecul Tău';
-		$heading = 'Programarea ta a fost confirmată';
-		$paragraphs = [
-			'Bună, ' . $name . ',',
-			'Programarea ta a fost confirmată.',
-		];
-	} elseif ($type === 'rejected') {
-		$subject = 'Actualizare privind programarea ta | Farmecul Tău';
-		$heading = 'Actualizare privind programarea ta';
-		$paragraphs = [
-			'Bună, ' . $name . ',',
-			'Din păcate, solicitarea ta de programare nu a putut fi confirmată.',
-		];
-
-		$adminNote = trim((string) ($appointment['admin_note'] ?? ''));
-
-		if ($adminNote !== '') {
-			$paragraphs[] = 'Mesaj din partea salonului: ' . $adminNote;
-		}
-
-		farmeculLoadEnvFile();
-		$appUrl = rtrim((string) (getenv('APP_URL') ?: ''), '/');
-
-		if ($appUrl !== '') {
-			$actionUrl = $appUrl . '/pages/programari.php';
-		}
-	} else {
-		error_log('Farmecul Tau appointment mail skipped: unknown notification type.');
-		return false;
+	if ($customerNote !== '') {
+		$details['Observații clientă'] = $customerNote;
 	}
 
-	return sendMail(
-		$email,
-		$name,
-		$subject,
-		farmeculBuildAppointmentHtmlEmail($heading, $paragraphs, $details, $actionUrl),
-		farmeculBuildAppointmentTextEmail($heading, $paragraphs, $details, $actionUrl)
+	return farmeculSendAppointmentEmail(
+		$pdo,
+		$appointmentId,
+		'appointment-request-specialist',
+		$specialistEmail,
+		(string) ($appointment['specialist_name'] ?? ''),
+		[
+			'appointment' => $appointment,
+			'details' => $details,
+			'dashboardUrl' => farmeculAppUrl('admin/my-appointments.php'),
+		]
 	);
 }
 
-function sendAppointmentPendingEmail(PDO $pdo, int $appointmentId): bool
+function farmeculSendCustomerAppointmentNotification(PDO $pdo, int $appointmentId, string $templateName): bool
 {
-	return farmeculSendAppointmentNotification($pdo, $appointmentId, 'pending');
+	$appointment = farmeculLoadAppointmentNotification($pdo, $appointmentId);
+
+	if ($appointment === null) {
+		error_log('Farmecul Tau customer appointment mail skipped: appointment not found.');
+		return false;
+	}
+
+	$email = trim((string) ($appointment['customer_email'] ?? ''));
+	$name = (string) ($appointment['customer_name'] ?? '');
+
+	if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+		error_log('Farmecul Tau customer appointment mail skipped: invalid customer_email. Appointment ID: ' . $appointmentId);
+		return false;
+	}
+
+	return farmeculSendAppointmentEmail(
+		$pdo,
+		$appointmentId,
+		$templateName,
+		$email,
+		$name,
+		[
+			'appointment' => $appointment,
+			'details' => farmeculAppointmentEmailDetails($appointment),
+			'accountUrl' => $appointment['customer_user_id'] !== null ? farmeculAppUrl('pages/contul-meu.php') : null,
+			'bookingUrl' => farmeculAppUrl('pages/programari.php'),
+		]
+	);
 }
 
 function sendAppointmentApprovedEmail(PDO $pdo, int $appointmentId): bool
 {
-	return farmeculSendAppointmentNotification($pdo, $appointmentId, 'approved');
+	return farmeculSendCustomerAppointmentNotification($pdo, $appointmentId, 'appointment-approved-customer');
 }
 
 function sendAppointmentRejectedEmail(PDO $pdo, int $appointmentId): bool
 {
-	return farmeculSendAppointmentNotification($pdo, $appointmentId, 'rejected');
+	return farmeculSendCustomerAppointmentNotification($pdo, $appointmentId, 'appointment-rejected-customer');
+}
+
+function sendAppointmentPendingEmail(PDO $pdo, int $appointmentId): bool
+{
+	return sendAppointmentRequestSpecialistEmail($pdo, $appointmentId);
 }

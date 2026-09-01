@@ -215,8 +215,8 @@ try {
 	$appointmentId = (int) $pdo->lastInsertId();
 	$pdo->commit();
 
-	if (!sendAppointmentPendingEmail($pdo, $appointmentId)) {
-		error_log('Farmecul Tau appointment saved, notification email failed. Appointment ID: ' . $appointmentId);
+	if (!sendAppointmentRequestSpecialistEmail($pdo, $appointmentId)) {
+		error_log('Farmecul Tau appointment saved, specialist notification email failed. Appointment ID: ' . $appointmentId);
 	}
 
 	sendJsonResponse(201, [
