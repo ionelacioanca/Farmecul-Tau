@@ -1,0 +1,3 @@
+ALTER TABLE specialists
+	ADD COLUMN IF NOT EXISTS profile_image VARCHAR(500) NULL AFTER phone,
+	ADD COLUMN IF NOT EXISTS bio TEXT NULL AFTER profile_image;

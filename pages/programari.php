@@ -1,4 +1,9 @@
 <?php
+declare(strict_types=1);
+
+require_once __DIR__ . '/../includes/auth.php';
+
+$headerHasCustomerSession = getCurrentUserId() !== null;
 $initialOfferId = filter_var($_GET['offer_id'] ?? null, FILTER_VALIDATE_INT, [
 	'options' => ['min_range' => 1],
 ]);
@@ -10,7 +15,7 @@ $initialOfferId = filter_var($_GET['offer_id'] ?? null, FILTER_VALIDATE_INT, [
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Programări | Farmecul Tău</title>
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-	<link rel="stylesheet" href="../css/style.css?v=20260828-4">
+	<link rel="stylesheet" href="../css/style.css?v=20260901-4">
 </head>
 <body>
 	<?php require_once __DIR__ . '/../includes/header.php'; ?>
@@ -120,7 +125,7 @@ $initialOfferId = filter_var($_GET['offer_id'] ?? null, FILTER_VALIDATE_INT, [
 		</section>
 	</main>
 
-	<script src="../js/script.js?v=20260828-3"></script>
+	<script src="../js/script.js?v=20260901-2"></script>
 	<script src="../js/booking-availability.js?v=20260828-2"></script>
 </body>
 </html>

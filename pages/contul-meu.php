@@ -6,6 +6,7 @@ require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/promo-eligibility.php';
 
 $user = getCurrentUser($pdo);
+$headerHasCustomerSession = $user !== null;
 $activePromo = null;
 $promoHistory = [];
 $appointments = [];
@@ -169,7 +170,7 @@ function formatAccountAppointmentState(array $appointment): array
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Contul meu | Farmecul Tău</title>
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-	<link rel="stylesheet" href="../css/style.css?v=20260828-4">
+	<link rel="stylesheet" href="../css/style.css?v=20260901-4">
 </head>
 <body>
 	<?php require_once __DIR__ . '/../includes/header.php'; ?>
@@ -177,7 +178,7 @@ function formatAccountAppointmentState(array $appointment): array
 	<main class="account-page" aria-labelledby="account-title">
 		<div class="account-shell">
 			<?php if ($user === null): ?>
-				<section class="account-panel account-login-required" data-account-auth>
+				<section class="account-panel account-login-required" id="conecteaza-te" data-account-auth>
 					<p class="account-kicker">CONT CLIENT</p>
 					<h1 class="account-title" id="account-title">Intră în contul tău</h1>
 					<p class="account-text">Alege autentificarea sau creează un cont pentru a vedea surprizele tale promoționale.</p>
@@ -200,7 +201,7 @@ function formatAccountAppointmentState(array $appointment): array
 						<button class="account-button" type="submit">Intră în cont</button>
 					</form>
 
-					<form class="account-auth-form" data-account-auth-form="register" hidden>
+					<form class="account-auth-form" id="creaza-cont" data-account-auth-form="register" hidden>
 						<label>
 							<span>Nume</span>
 							<input type="text" name="name" autocomplete="name" required>
@@ -234,7 +235,7 @@ function formatAccountAppointmentState(array $appointment): array
 					<button class="account-logout" type="button" data-account-logout>Deconectare</button>
 				</section>
 
-				<section class="account-panel account-profile" aria-labelledby="account-profile-title">
+				<section class="account-panel account-profile" id="editeaza-profil" aria-labelledby="account-profile-title">
 					<h2 class="account-section-title" id="account-profile-title">DATELE CONTULUI</h2>
 					<form class="account-profile-form" data-account-profile-form>
 						<label>
@@ -257,7 +258,7 @@ function formatAccountAppointmentState(array $appointment): array
 					</form>
 				</section>
 
-				<section class="account-panel account-danger" aria-labelledby="account-danger-title">
+				<section class="account-panel account-danger" id="stergere-cont" aria-labelledby="account-danger-title">
 					<h2 class="account-section-title" id="account-danger-title">STERGERE CONT</h2>
 					<p class="account-text">Stergerea contului elimina accesul la profil. Programarile vechi raman in istoricul salonului fara legatura cu acest cont.</p>
 					<p class="account-auth-message" data-account-delete-message role="alert" hidden></p>
@@ -290,7 +291,7 @@ function formatAccountAppointmentState(array $appointment): array
 					<?php endif; ?>
 				</section>
 
-				<section class="account-panel account-history" aria-labelledby="promo-history-title">
+				<section class="account-panel account-history" id="istoric-recompense" aria-labelledby="promo-history-title">
 					<h2 class="account-section-title" id="promo-history-title">ISTORIC SURPRIZE</h2>
 
 					<?php if ($promoHistory === []): ?>
@@ -324,7 +325,7 @@ function formatAccountAppointmentState(array $appointment): array
 					<?php endif; ?>
 				</section>
 
-				<section class="account-panel account-booking-history" aria-labelledby="booking-history-title">
+				<section class="account-panel account-booking-history" id="programarile-mele" aria-labelledby="booking-history-title">
 					<h2 class="account-section-title" id="booking-history-title">PROGRAMĂRILE MELE</h2>
 
 					<?php if ($appointments === []): ?>
@@ -421,7 +422,7 @@ function formatAccountAppointmentState(array $appointment): array
 		</div>
 	</main>
 
-	<script src="../js/script.js?v=20260828-3"></script>
+	<script src="../js/script.js?v=20260901-2"></script>
 	<script>
 		const logoutButton = document.querySelector('[data-account-logout]');
 		const accountAuth = document.querySelector('[data-account-auth]');
@@ -488,6 +489,17 @@ function formatAccountAppointmentState(array $appointment): array
 			authTabs.forEach((tab) => {
 				tab.addEventListener('click', () => switchView(tab.dataset.accountAuthTab));
 			});
+
+			const applyAuthHash = () => {
+				if (window.location.hash === '#creaza-cont') {
+					switchView('register');
+				} else if (window.location.hash === '#conecteaza-te') {
+					switchView('login');
+				}
+			};
+
+			applyAuthHash();
+			window.addEventListener('hashchange', applyAuthHash);
 
 			authForms.forEach((form) => {
 				form.addEventListener('submit', async (event) => {

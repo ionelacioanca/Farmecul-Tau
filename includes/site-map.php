@@ -6,8 +6,8 @@
 			<p class="site-map-support">Descoperă universul Farmecul Tău.</p>
 		</div>
 
-		<div class="row g-4 g-xl-5 site-map-grid" role="list" aria-label="Destinații principale Farmecul Tău">
-			<div class="col-12 col-md-6 col-xl-4 d-flex" role="listitem">
+		<div class="row g-4 g-xl-5 site-map-grid site-map-grid-compact" role="list" aria-label="Destinații principale Farmecul Tău">
+			<div class="col-12 col-md-6 d-flex" role="listitem">
 				<article class="destination-card destination-card-offers w-100" aria-labelledby="destination-offers-title">
 					<div class="destination-visual destination-visual-offers" aria-hidden="true">
 						<img class="destination-offers-illustration" src="images/oferte-home.png" alt="">
@@ -22,25 +22,10 @@
 				</article>
 			</div>
 
-			<div class="col-12 col-md-6 col-xl-4 d-flex" role="listitem">
-				<article class="destination-card destination-card-products w-100" aria-labelledby="destination-products-title">
-					<div class="destination-visual destination-visual-products">
-						<img class="destination-product-illustration" src="images/produse-home.png" alt="Ilustrație line-art cu produse profesionale pentru îngrijire și coafare">
-					</div>
-					<div class="destination-content">
-						<h3 class="destination-title" id="destination-products-title">PRODUSE</h3>
-						<p class="destination-text">Produsele pe care le folosim și le recomandăm.</p>
-						<a class="destination-link" href="pages/produse.php" aria-label="Vezi produsele recomandate Farmecul Tău">
-							<span>VEZI PRODUSELE</span>
-						</a>
-					</div>
-				</article>
-			</div>
-
-			<div class="col-12 col-md-6 col-xl-4 d-flex" role="listitem">
+			<div class="col-12 col-md-6 d-flex" role="listitem">
 				<article class="destination-card destination-card-about w-100" aria-labelledby="destination-about-title">
-					<div class="destination-visual destination-visual-about">
-						<img class="destination-about-illustration" src="images/despre-home.png" alt="Ilustrație elegantă pentru povestea Farmecul Tău">
+					<div class="destination-visual destination-visual-about" aria-hidden="true">
+						<img class="destination-about-illustration" src="images/despre-home.png" alt="">
 					</div>
 					<div class="destination-content">
 						<h3 class="destination-title" id="destination-about-title">DESPRE</h3>

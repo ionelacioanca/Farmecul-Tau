@@ -67,9 +67,30 @@ body {
 	transition: color 180ms ease;
 }
 
+.account-menu-button {
+	display: inline-flex;
+	align-items: center;
+	padding: 8px 0;
+	border: 0;
+	background: transparent;
+	color: var(--ivory);
+	cursor: pointer;
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: 1.25rem;
+	font-weight: 500;
+	line-height: 1;
+	transition: color 180ms ease;
+}
+
 .site-nav a:hover,
 .site-nav a:focus-visible,
 .site-nav a.is-active { color: var(--gold); }
+
+.account-menu-button:hover,
+.account-menu-button:focus-visible,
+.account-menu-button.is-active {
+	color: var(--gold);
+}
 
 .site-nav li {
 	position: relative;
@@ -122,7 +143,8 @@ body {
 }
 
 .site-nav .has-submenu:hover .nav-submenu,
-.site-nav .has-submenu:focus-within .nav-submenu {
+.site-nav .has-submenu:focus-within .nav-submenu,
+.site-nav .has-submenu.is-open .nav-submenu {
 	opacity: 1;
 	pointer-events: auto;
 	transform: translate(-50%, 0);
@@ -181,6 +203,45 @@ body {
 	white-space: nowrap;
 }
 
+.site-nav .account-menu-dropdown {
+	width: 150px;
+	min-width: 0;
+	transform: translate(-56%, -6px);
+}
+
+.site-nav .account-menu-item:hover .account-menu-dropdown,
+.site-nav .account-menu-item:focus-within .account-menu-dropdown,
+.site-nav .account-menu-item.is-open .account-menu-dropdown {
+	transform: translate(-56%, 0);
+}
+
+.site-nav .account-menu-dropdown a {
+	padding: 9px 8px 9px 10px;
+	white-space: normal;
+}
+
+.account-menu-panel {
+	display: grid;
+	gap: 6px;
+}
+
+.account-menu-dropdown button {
+	display: block;
+	width: 100%;
+	padding: 9px 8px 9px 10px;
+	border: 0;
+	border-radius: 6px;
+	background: transparent;
+	color: var(--emerald);
+	cursor: pointer;
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: 1.04rem;
+	font-weight: 600;
+	line-height: 1.15;
+	text-align: left;
+	white-space: normal;
+}
+
 .site-nav .nav-submenu .nav-service-filters a {
 	display: inline-flex;
 	padding: 8px 12px;
@@ -188,24 +249,10 @@ body {
 }
 
 .site-nav .nav-submenu a:hover,
-.site-nav .nav-submenu a:focus-visible {
+.site-nav .nav-submenu a:focus-visible,
+.account-menu-dropdown button:hover,
+.account-menu-dropdown button:focus-visible {
 	background: rgba(198, 161, 91, 0.16);
-	color: var(--black);
-}
-
-.site-nav .nav-cta {
-	padding: 11px 18px;
-	border: 1px solid var(--ivory);
-	border-radius: 4px;
-	background: var(--ivory);
-	color: var(--emerald);
-	transition: background-color 180ms ease, color 180ms ease;
-}
-
-.site-nav .nav-cta:hover,
-.site-nav .nav-cta:focus-visible,
-.site-nav .nav-cta.is-active {
-	background: var(--gold);
 	color: var(--black);
 }
 
@@ -338,6 +385,10 @@ body {
 .site-map-shell {
 	width: min(100% - 48px, 1240px);
 	margin: 0 auto;
+}
+
+.site-map-grid-compact {
+	justify-content: center;
 }
 
 .site-map-intro {
@@ -520,39 +571,6 @@ body {
 
 .destination-card-offers:hover .destination-offers-illustration,
 .destination-card-offers:focus-within .destination-offers-illustration {
-	transform: scale(1.03);
-}
-
-.destination-card-products .destination-visual {
-	border-bottom: 0;
-	border-radius: 16px;
-	background: var(--emerald);
-	overflow: hidden;
-}
-
-.destination-card-products {
-	border-radius: 16px;
-	overflow: hidden;
-}
-
-.destination-card-products .destination-visual::after {
-	content: none;
-}
-
-.destination-product-illustration {
-	display: block;
-	width: 100%;
-	height: 100%;
-	min-width: 0;
-	min-height: 0;
-	padding: clamp(18px, 2.6vw, 28px);
-	object-fit: contain;
-	object-position: center;
-	transition: transform 0.4s ease;
-}
-
-.destination-card-products:hover .destination-product-illustration,
-.destination-card-products:focus-within .destination-product-illustration {
 	transform: scale(1.03);
 }
 
@@ -3292,6 +3310,366 @@ button.offer-cta {
 	font-size: clamp(2rem, 5vw, 4rem);
 }
 
+.about-page {
+	background: var(--ivory);
+	color: var(--black);
+}
+
+.about-intro,
+.about-story,
+.about-team,
+.about-atmosphere,
+.about-products,
+.about-final-cta {
+	width: min(100% - 48px, 1180px);
+	margin: 0 auto;
+}
+
+.about-intro {
+	padding: clamp(54px, 8vw, 92px) 0 clamp(24px, 4vw, 42px);
+}
+
+.about-intro-copy {
+	max-width: 760px;
+}
+
+.about-intro h1,
+.about-story h2,
+.about-section-heading h2,
+.about-products h2,
+.about-final-cta h2 {
+	margin: 8px 0 0;
+	color: #573e2e;
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-weight: 500;
+	line-height: 0.98;
+}
+
+.about-intro h1 {
+	font-size: clamp(2.8rem, 7vw, 5.8rem);
+}
+
+.about-lede,
+.about-story p,
+.about-products p,
+.about-final-cta p,
+.team-card p,
+.team-service-list {
+	color: rgba(17, 17, 17, 0.76);
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: clamp(1.08rem, 1.6vw, 1.22rem);
+	line-height: 1.6;
+}
+
+.about-lede {
+	max-width: 58ch;
+	margin: 18px 0 0;
+	color: var(--emerald);
+	font-weight: 600;
+}
+
+.about-story {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(240px, 420px);
+	gap: clamp(28px, 6vw, 76px);
+	align-items: stretch;
+	padding: clamp(20px, 4vw, 42px) 0 clamp(62px, 9vw, 110px);
+}
+
+.about-story-content {
+	display: grid;
+	align-content: center;
+	gap: 14px;
+}
+
+.about-story h2,
+.about-section-heading h2,
+.about-products h2,
+.about-final-cta h2 {
+	font-size: clamp(2rem, 4.8vw, 4rem);
+}
+
+.about-story p {
+	max-width: 62ch;
+	margin: 0;
+}
+
+.about-story strong,
+.team-card strong {
+	color: var(--emerald);
+	font-weight: 700;
+}
+
+.about-story-visual {
+	margin: 0;
+}
+
+.about-image-placeholder,
+.salon-placeholder {
+	display: grid;
+	place-items: center;
+	min-height: 100%;
+	padding: clamp(28px, 5vw, 46px);
+	border: 1px solid rgba(198, 161, 91, 0.5);
+	border-radius: 8px;
+	background:
+		repeating-linear-gradient(
+			90deg,
+			rgba(198, 161, 91, 0.07) 0,
+			rgba(198, 161, 91, 0.07) 1px,
+			transparent 1px,
+			transparent 22px
+		),
+		var(--emerald);
+	color: var(--ivory);
+	text-align: center;
+}
+
+.about-image-placeholder {
+	aspect-ratio: 4 / 5;
+}
+
+.about-image-placeholder span,
+.salon-placeholder span {
+	color: var(--gold);
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: clamp(1.8rem, 3vw, 2.8rem);
+	font-weight: 500;
+	line-height: 1.05;
+}
+
+.about-image-placeholder small,
+.salon-placeholder small {
+	display: block;
+	margin-top: 10px;
+	color: rgba(255, 255, 240, 0.72);
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: 1rem;
+}
+
+.about-team,
+.about-atmosphere {
+	padding: clamp(56px, 8vw, 96px) 0;
+	border-top: 1px solid rgba(25, 90, 72, 0.16);
+}
+
+.about-section-heading {
+	max-width: 720px;
+	margin-bottom: clamp(30px, 5vw, 52px);
+}
+
+.about-team-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: clamp(22px, 4vw, 34px);
+}
+
+.team-card {
+	display: grid;
+	grid-template-columns: minmax(150px, 0.42fr) minmax(0, 0.58fr);
+	gap: 0;
+	border: 1px solid rgba(25, 90, 72, 0.18);
+	border-radius: 8px;
+	background: rgba(255, 255, 240, 0.96);
+	box-shadow: 0 18px 48px rgba(17, 17, 17, 0.06);
+	overflow: hidden;
+}
+
+.team-photo {
+	display: block;
+	width: 100%;
+	height: 100%;
+	min-height: 320px;
+	object-fit: cover;
+	background: var(--emerald);
+}
+
+.team-photo-placeholder {
+	display: grid;
+	place-items: center;
+	color: var(--gold);
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: clamp(4rem, 8vw, 6rem);
+	font-weight: 500;
+}
+
+.team-card-content {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	padding: clamp(24px, 4vw, 36px);
+}
+
+.team-specialization,
+.product-info-label {
+	margin: 0;
+	color: var(--gold);
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: 0.86rem;
+	font-weight: 700;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+}
+
+.team-card h3,
+.product-info-card h3 {
+	margin: 8px 0 0;
+	color: #573e2e;
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: clamp(1.7rem, 3vw, 2.45rem);
+	font-weight: 500;
+	line-height: 1.05;
+}
+
+.team-card p {
+	margin: 14px 0 0;
+}
+
+.team-muted {
+	color: rgba(17, 17, 17, 0.56) !important;
+}
+
+.team-service-list {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 18px 0 0;
+	padding: 0;
+	list-style: none;
+}
+
+.team-service-list li {
+	padding: 7px 10px;
+	border-left: 2px solid var(--gold);
+	background: rgba(198, 161, 91, 0.1);
+	color: #573e2e;
+	font-size: 0.98rem;
+	line-height: 1.2;
+}
+
+.about-cta-link {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	align-self: flex-start;
+	min-height: 46px;
+	margin-top: auto;
+	padding: 12px 18px;
+	border: 1px solid var(--black);
+	border-radius: 6px;
+	background: var(--black);
+	color: var(--ivory);
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: 0.95rem;
+	font-weight: 700;
+	letter-spacing: 0.1em;
+	line-height: 1.1;
+	text-decoration: none;
+	text-transform: uppercase;
+	transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
+.about-cta-link:hover,
+.about-cta-link:focus-visible {
+	border-color: var(--gold);
+	background: var(--gold);
+	color: var(--black);
+}
+
+.about-cta-secondary {
+	border-color: var(--emerald);
+	background: transparent;
+	color: var(--emerald);
+}
+
+.about-empty {
+	max-width: 680px;
+	margin: 0;
+	color: rgba(17, 17, 17, 0.74);
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: 1.2rem;
+	line-height: 1.55;
+}
+
+.salon-gallery {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: clamp(16px, 3vw, 28px);
+}
+
+.salon-gallery figure {
+	margin: 0;
+}
+
+.salon-gallery img,
+.salon-placeholder {
+	width: 100%;
+	aspect-ratio: 4 / 5;
+	border-radius: 8px;
+}
+
+.salon-gallery img {
+	display: block;
+	object-fit: cover;
+}
+
+.about-products {
+	display: grid;
+	grid-template-columns: minmax(0, 0.86fr) minmax(280px, 1.14fr);
+	gap: clamp(24px, 5vw, 58px);
+	align-items: start;
+	padding: clamp(58px, 8vw, 96px) 0;
+	border-top: 1px solid rgba(25, 90, 72, 0.16);
+}
+
+.about-products-copy p:not(.section-kicker) {
+	max-width: 58ch;
+	margin: 16px 0 0;
+}
+
+.product-info-grid {
+	display: grid;
+	gap: 18px;
+}
+
+.product-info-card {
+	padding: clamp(24px, 4vw, 34px);
+	border: 1px solid rgba(25, 90, 72, 0.18);
+	border-radius: 8px;
+	background: rgba(255, 255, 240, 0.96);
+	box-shadow: 0 16px 38px rgba(17, 17, 17, 0.05);
+}
+
+.product-info-card p:not(.product-info-label) {
+	margin: 14px 0 0;
+	color: rgba(17, 17, 17, 0.72);
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: 1.08rem;
+	line-height: 1.58;
+}
+
+.about-final-cta {
+	padding: clamp(54px, 8vw, 92px) 0 clamp(76px, 10vw, 128px);
+	text-align: center;
+}
+
+.about-final-cta .section-kicker {
+	display: block;
+}
+
+.about-final-actions {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 12px;
+	margin-top: 28px;
+}
+
+.about-final-actions .about-cta-link {
+	align-self: center;
+	margin-top: 0;
+}
+
 .menu-toggle {
 	display: none;
 	align-items: center;
@@ -3327,8 +3705,12 @@ button.offer-cta {
 	.site-nav.is-open { display: block; }
 	.site-nav ul { display: block; }
 	.site-nav li + li { border-top: 1px solid rgba(255, 255, 240, 0.12); }
-	.site-nav a, .site-nav .nav-cta { display: block; padding: 14px 4px; border: 0; border-radius: 0; }
-	.site-nav .nav-cta { margin-top: 8px; padding: 12px 16px; border: 1px solid var(--ivory); border-radius: 4px; text-align: center; }
+	.site-nav a { display: block; padding: 14px 4px; border: 0; border-radius: 0; }
+	.account-menu-button {
+		min-height: 44px;
+		padding: 14px 4px;
+		font-size: 1.25rem;
+	}
 	.nav-submenu-control { justify-content: space-between; }
 	.nav-submenu-toggle { display: inline-flex; }
 	.site-nav .nav-submenu {
@@ -3362,6 +3744,16 @@ button.offer-cta {
 		color: rgba(255, 255, 240, 0.84);
 		font-size: 1rem;
 		white-space: normal;
+	}
+	.account-menu-dropdown button {
+		color: rgba(255, 255, 240, 0.84);
+		font-size: 1rem;
+		white-space: normal;
+	}
+	.account-menu-dropdown button:hover,
+	.account-menu-dropdown button:focus-visible {
+		background: rgba(255, 255, 240, 0.12);
+		color: var(--ivory);
 	}
 
 	.hero-inner {
@@ -3416,6 +3808,19 @@ button.offer-cta {
 	}
 	.public-service-card {
 		grid-template-columns: 1fr;
+	}
+	.about-story,
+	.about-products {
+		grid-template-columns: 1fr;
+	}
+	.about-team-grid {
+		grid-template-columns: 1fr;
+	}
+	.team-card {
+		grid-template-columns: minmax(140px, 0.36fr) minmax(0, 0.64fr);
+	}
+	.salon-gallery {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 	.offers-intro,
 	.offer-card {
@@ -3483,11 +3888,31 @@ button.offer-cta {
 	.destination-text {
 		font-size: 1.1rem;
 	}
-	.destination-product-illustration {
-		padding: 16px;
-	}
 	.destination-about-illustration {
 		padding: 16px;
+	}
+	.about-intro,
+	.about-story,
+	.about-team,
+	.about-atmosphere,
+	.about-products,
+	.about-final-cta {
+		width: min(100% - 28px, 1180px);
+	}
+	.about-story {
+		padding-bottom: 58px;
+	}
+	.team-card {
+		grid-template-columns: 1fr;
+	}
+	.team-photo {
+		min-height: 280px;
+	}
+	.about-cta-link {
+		width: 100%;
+	}
+	.salon-gallery {
+		grid-template-columns: 1fr;
 	}
 	.offers-intro,
 	.offers-current,

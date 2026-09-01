@@ -46,6 +46,8 @@ CREATE TABLE IF NOT EXISTS specialists (
 	email VARCHAR(255) NULL,
 	specialization ENUM('hairstylist', 'nails') NULL,
 	phone VARCHAR(50) NULL,
+	profile_image VARCHAR(500) NULL,
+	bio TEXT NULL,
 	active TINYINT(1) DEFAULT 1,
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	INDEX idx_specialists_user_id (user_id),
@@ -60,6 +62,10 @@ CREATE TABLE IF NOT EXISTS specialists (
 ALTER TABLE specialists
 	ADD COLUMN IF NOT EXISTS specialization ENUM('hairstylist', 'nails') NULL
 	AFTER email;
+
+ALTER TABLE specialists
+	ADD COLUMN IF NOT EXISTS profile_image VARCHAR(500) NULL AFTER phone,
+	ADD COLUMN IF NOT EXISTS bio TEXT NULL AFTER profile_image;
 
 ALTER TABLE specialists
 	ADD UNIQUE INDEX IF NOT EXISTS ux_specialists_user_id (user_id);
