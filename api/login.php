@@ -32,7 +32,7 @@ try {
 	require_once __DIR__ . '/../includes/auth.php';
 
 	$statement = $pdo->prepare(
-		'SELECT id, name, email, password_hash, role
+		'SELECT id, name, email, phone, password_hash, role
 		 FROM users
 		 WHERE email = :email
 		 LIMIT 1'
@@ -59,6 +59,7 @@ try {
 			'id' => (int) $user['id'],
 			'name' => (string) $user['name'],
 			'email' => (string) $user['email'],
+			'phone' => $user['phone'] !== null ? (string) $user['phone'] : null,
 		],
 	]);
 } catch (Throwable $exception) {

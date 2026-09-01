@@ -89,6 +89,7 @@ try {
 			'id' => $userId,
 			'name' => $name,
 			'email' => $email,
+			'phone' => null,
 		],
 	]);
 } catch (Throwable $exception) {

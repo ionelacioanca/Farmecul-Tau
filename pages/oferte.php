@@ -270,32 +270,36 @@ if ($offerIds !== []) {
 													<dt>Pret</dt>
 													<dd data-offer-summary-price><?php echo publicOfferEscape(number_format((float) $offer['price'], 0, ',', '.')); ?> lei</dd>
 												</div>
+												<div>
+													<dt>Durata</dt>
+													<dd data-offer-summary-duration><?php echo (int) $offer['duration_minutes']; ?> min</dd>
+												</div>
 											</dl>
 										</div>
 
 										<form class="booking-details-form" data-offer-details-form>
-											<label>
+											<label data-offer-contact-field="name">
 												<span>Nume</span>
 												<input type="text" name="customer_name" autocomplete="name" maxlength="150" required>
 											</label>
 
-											<label>
+											<label data-offer-contact-field="email">
 												<span>Email</span>
 												<input type="email" name="customer_email" autocomplete="email" maxlength="255" required>
 											</label>
 
-											<label>
+											<label data-offer-contact-field="phone">
 												<span>Telefon</span>
 												<input type="tel" name="customer_phone" autocomplete="tel" maxlength="50" required>
 											</label>
 
-											<label class="booking-full-field">
+											<label class="booking-full-field" data-offer-contact-field="notes">
 												<span>Observatii</span>
 												<textarea name="notes" maxlength="1000" rows="4"></textarea>
 											</label>
 
 											<p class="booking-form-message" data-offer-form-message></p>
-											<button type="submit" class="booking-submit">Trimite cererea</button>
+											<button type="submit" class="booking-submit">TRIMITE PROGRAMAREA</button>
 										</form>
 									</section>
 								</div>

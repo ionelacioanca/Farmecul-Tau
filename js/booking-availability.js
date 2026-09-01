@@ -15,11 +15,19 @@ if (bookingAvailability) {
 	const summarySpecialist = bookingAvailability.querySelector('[data-booking-summary-specialist]');
 	const summaryDate = bookingAvailability.querySelector('[data-booking-summary-date]');
 	const summaryTime = bookingAvailability.querySelector('[data-booking-summary-time]');
+	const summaryDuration = bookingAvailability.querySelector('[data-booking-summary-duration]');
+	const summaryPrice = bookingAvailability.querySelector('[data-booking-summary-price]');
 	const selectedDetails = bookingAvailability.querySelector('[data-booking-selected-details]');
 	const selectedDuration = bookingAvailability.querySelector('[data-booking-selected-duration]');
 	const selectedPrice = bookingAvailability.querySelector('[data-booking-selected-price]');
 	const offerSummary = bookingAvailability.querySelector('[data-booking-offer-summary]');
 	const offerTitle = bookingAvailability.querySelector('[data-booking-offer-title]');
+	const contactFields = {
+		name: bookingAvailability.querySelector('[data-booking-contact-field="name"]'),
+		email: bookingAvailability.querySelector('[data-booking-contact-field="email"]'),
+		phone: bookingAvailability.querySelector('[data-booking-contact-field="phone"]'),
+		notes: bookingAvailability.querySelector('[data-booking-contact-field="notes"]'),
+	};
 
 	const services = new Map();
 	const specialists = new Map();
@@ -180,21 +188,27 @@ if (bookingAvailability) {
 		specialistSelect.disabled = true;
 	};
 
-	const prefillAuthenticatedUser = () => {
-		if (!authenticatedUser) {
+	const setFieldState = (field, hidden, required = false) => {
+		if (!field) {
 			return;
 		}
 
-		const nameField = detailsForm.elements.customer_name;
-		const emailField = detailsForm.elements.customer_email;
+		const control = field.querySelector('input, textarea');
+		field.hidden = hidden;
 
-		if (!nameField.value) {
-			nameField.value = authenticatedUser.name || '';
+		if (control) {
+			control.required = required;
+			control.disabled = hidden;
 		}
+	};
 
-		if (!emailField.value) {
-			emailField.value = authenticatedUser.email || '';
-		}
+	const configureContactFields = () => {
+		const isAuthenticated = Boolean(authenticatedUser);
+
+		setFieldState(contactFields.name, isAuthenticated, !isAuthenticated);
+		setFieldState(contactFields.email, isAuthenticated, !isAuthenticated);
+		setFieldState(contactFields.phone, isAuthenticated, !isAuthenticated);
+		setFieldState(contactFields.notes, false, false);
 	};
 
 	const getSelectedBookableDetails = () => {
@@ -211,6 +225,9 @@ if (bookingAvailability) {
 		const durationMinutes = bookingMode === 'offer'
 			? offerState?.duration_minutes
 			: selectedSpecialist?.duration_minutes;
+		const price = bookingMode === 'offer'
+			? offerState?.price
+			: selectedSpecialist?.price;
 		const bookableName = bookingMode === 'offer'
 			? offerState?.title
 			: selectedBookable?.name;
@@ -224,14 +241,22 @@ if (bookingAvailability) {
 			: specialistSelect.options[specialistSelect.selectedIndex]?.textContent || '-';
 		summaryDate.textContent = formatDate(dateInput.value);
 		summaryTime.textContent = slot;
+		if (summaryDuration) {
+			summaryDuration.textContent = durationMinutes ? `${durationMinutes} min` : '-';
+		}
+		if (summaryPrice) {
+			summaryPrice.textContent = price != null ? `${formatPrice(price)} lei` : '-';
+		}
 		renderSelectedDetails(bookingMode === 'offer' ? offerState : selectedSpecialist || null);
 
 		removeConfirmation();
 		detailsForm.hidden = false;
 		detailsSection.hidden = false;
 		setFormMessage('');
-		prefillAuthenticatedUser();
-		setStatus(`Ai selectat ora ${slot}. Completeaza datele si trimite cererea.`);
+		configureContactFields();
+		setStatus(authenticatedUser
+			? `Ai selectat ora ${slot}. Verifica rezumatul si trimite programarea.`
+			: `Ai selectat ora ${slot}. Completeaza datele si trimite cererea.`);
 	};
 
 	const renderSlots = (slots) => {
@@ -264,9 +289,10 @@ if (bookingAvailability) {
 		try {
 			const data = await apiGet('../api/auth-status.php');
 			authenticatedUser = data.authenticated ? data.user : null;
-			prefillAuthenticatedUser();
+			configureContactFields();
 		} catch (error) {
 			authenticatedUser = null;
+			configureContactFields();
 		}
 	};
 
@@ -495,9 +521,6 @@ if (bookingAvailability) {
 			specialist_id: specialistSelect.value,
 			date: dateInput.value,
 			time: selectedSlot,
-			customer_name: formData.get('customer_name'),
-			customer_email: formData.get('customer_email'),
-			customer_phone: formData.get('customer_phone'),
 			notes: formData.get('notes'),
 		};
 
@@ -505,6 +528,14 @@ if (bookingAvailability) {
 			payload.offer_id = initialOfferId;
 		} else {
 			payload.service_id = serviceSelect.value;
+		}
+
+		if (authenticatedUser) {
+			payload.notes = formData.get('notes');
+		} else {
+			payload.customer_name = formData.get('customer_name');
+			payload.customer_email = formData.get('customer_email');
+			payload.customer_phone = formData.get('customer_phone');
 		}
 
 		try {

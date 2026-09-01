@@ -15,6 +15,13 @@ document.querySelectorAll('[data-offer-booking]').forEach((panel) => {
 	const summaryDate = panel.querySelector('[data-offer-summary-date]');
 	const summaryTime = panel.querySelector('[data-offer-summary-time]');
 	const summaryPrice = panel.querySelector('[data-offer-summary-price]');
+	const summaryDuration = panel.querySelector('[data-offer-summary-duration]');
+	const contactFields = {
+		name: panel.querySelector('[data-offer-contact-field="name"]'),
+		email: panel.querySelector('[data-offer-contact-field="email"]'),
+		phone: panel.querySelector('[data-offer-contact-field="phone"]'),
+		notes: panel.querySelector('[data-offer-contact-field="notes"]'),
+	};
 
 	if (
 		!toggle
@@ -107,30 +114,37 @@ document.querySelectorAll('[data-offer-booking]').forEach((panel) => {
 		});
 	};
 
-	const prefillAuthenticatedUser = () => {
-		if (!authenticatedUser) {
+	const setFieldState = (field, hidden, required = false) => {
+		if (!field) {
 			return;
 		}
 
-		const nameField = detailsForm.elements.customer_name;
-		const emailField = detailsForm.elements.customer_email;
+		const control = field.querySelector('input, textarea');
+		field.hidden = hidden;
 
-		if (nameField && !nameField.value) {
-			nameField.value = authenticatedUser.name || '';
+		if (control) {
+			control.required = required;
+			control.disabled = hidden;
 		}
+	};
 
-		if (emailField && !emailField.value) {
-			emailField.value = authenticatedUser.email || '';
-		}
+	const configureContactFields = () => {
+		const isAuthenticated = Boolean(authenticatedUser);
+
+		setFieldState(contactFields.name, isAuthenticated, !isAuthenticated);
+		setFieldState(contactFields.email, isAuthenticated, !isAuthenticated);
+		setFieldState(contactFields.phone, isAuthenticated, !isAuthenticated);
+		setFieldState(contactFields.notes, false, false);
 	};
 
 	const loadAuthStatus = async () => {
 		try {
 			const data = await requestJson('../api/auth-status.php');
 			authenticatedUser = data.authenticated ? data.user : null;
-			prefillAuthenticatedUser();
+			configureContactFields();
 		} catch (error) {
 			authenticatedUser = null;
+			configureContactFields();
 		}
 	};
 
@@ -299,12 +313,17 @@ document.querySelectorAll('[data-offer-booking]').forEach((panel) => {
 		if (summaryPrice) {
 			summaryPrice.textContent = `${formatPrice(offerState.price)} lei`;
 		}
+		if (summaryDuration) {
+			summaryDuration.textContent = `${offerState.duration_minutes} min`;
+		}
 
 		detailsForm.hidden = false;
 		detailsSection.hidden = false;
 		setFormMessage('');
-		prefillAuthenticatedUser();
-		setStatus(`Ai selectat ora ${slot}. Completeaza datele si trimite cererea.`);
+		configureContactFields();
+		setStatus(authenticatedUser
+			? `Ai selectat ora ${slot}. Verifica rezumatul si trimite programarea.`
+			: `Ai selectat ora ${slot}. Completeaza datele si trimite cererea.`);
 	}
 
 	const showConfirmation = (appointment) => {
@@ -410,11 +429,16 @@ document.querySelectorAll('[data-offer-booking]').forEach((panel) => {
 			specialist_id: specialistSelect.value,
 			date: dateInput.value,
 			time: selectedSlot,
-			customer_name: formData.get('customer_name'),
-			customer_email: formData.get('customer_email'),
-			customer_phone: formData.get('customer_phone'),
 			notes: formData.get('notes'),
 		};
+
+		if (authenticatedUser) {
+			payload.notes = formData.get('notes');
+		} else {
+			payload.customer_name = formData.get('customer_name');
+			payload.customer_email = formData.get('customer_email');
+			payload.customer_phone = formData.get('customer_phone');
+		}
 
 		try {
 			const data = await requestJson('../api/create-appointment.php', {

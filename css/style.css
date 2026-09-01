@@ -1270,11 +1270,19 @@ body {
 	text-align: left;
 }
 
+.account-profile-form {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 16px;
+	margin-top: 20px;
+}
+
 .account-auth-form[hidden] {
 	display: none;
 }
 
-.account-auth-form label {
+.account-auth-form label,
+.account-profile-form label {
 	display: grid;
 	gap: 7px;
 	margin: 0;
@@ -1283,7 +1291,8 @@ body {
 	font-size: 1.05rem;
 }
 
-.account-auth-form input {
+.account-auth-form input,
+.account-profile-form input {
 	width: 100%;
 	min-height: 46px;
 	border: 1px solid rgba(25, 90, 72, 0.28);
@@ -1295,6 +1304,7 @@ body {
 }
 
 .account-auth-form input:focus-visible,
+.account-profile-form input:focus-visible,
 .account-auth-tab:focus-visible {
 	outline: 2px solid var(--gold);
 	outline-offset: 3px;
@@ -1306,6 +1316,21 @@ body {
 }
 
 .account-auth-form .account-button:disabled {
+	cursor: default;
+	opacity: 0.64;
+}
+
+.account-profile-form .account-auth-message,
+.account-profile-form .account-button {
+	grid-column: 1 / -1;
+}
+
+.account-profile-form .account-button {
+	justify-self: start;
+	margin-top: 0;
+}
+
+.account-profile-form .account-button:disabled {
 	cursor: default;
 	opacity: 0.64;
 }
@@ -3184,7 +3209,8 @@ button.offer-cta {
 		flex-direction: column;
 	}
 	.account-code-grid,
-	.account-history-item dl {
+	.account-history-item dl,
+	.account-profile-form {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 	.admin-header {
@@ -3360,7 +3386,8 @@ button.offer-cta {
 		padding: 26px 18px;
 	}
 	.account-code-grid,
-	.account-history-item dl {
+	.account-history-item dl,
+	.account-profile-form {
 		grid-template-columns: 1fr;
 	}
 	.account-auth-tabs {

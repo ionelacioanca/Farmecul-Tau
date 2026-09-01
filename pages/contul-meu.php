@@ -124,8 +124,34 @@ function formatPromoStatus(string $status): string
 						<p class="account-kicker">CONTUL MEU</p>
 						<h1 class="account-title" id="account-title">Bun venit, <?php echo escapeHtml($user['name']); ?></h1>
 						<p class="account-email"><?php echo escapeHtml($user['email']); ?></p>
+						<?php if (!empty($user['phone'])): ?>
+							<p class="account-email"><?php echo escapeHtml((string) $user['phone']); ?></p>
+						<?php endif; ?>
 					</div>
 					<button class="account-logout" type="button" data-account-logout>Deconectare</button>
+				</section>
+
+				<section class="account-panel account-profile" aria-labelledby="account-profile-title">
+					<h2 class="account-section-title" id="account-profile-title">DATELE CONTULUI</h2>
+					<form class="account-profile-form" data-account-profile-form>
+						<label>
+							<span>Nume</span>
+							<input type="text" name="name" autocomplete="name" maxlength="150" value="<?php echo escapeHtml($user['name']); ?>" required>
+						</label>
+
+						<label>
+							<span>Email</span>
+							<input type="email" name="email" autocomplete="email" maxlength="255" value="<?php echo escapeHtml($user['email']); ?>" required>
+						</label>
+
+						<label>
+							<span>Telefon</span>
+							<input type="tel" name="phone" autocomplete="tel" maxlength="50" value="<?php echo escapeHtml((string) ($user['phone'] ?? '')); ?>">
+						</label>
+
+						<p class="account-auth-message" data-account-profile-message role="alert" hidden></p>
+						<button class="account-button" type="submit">Salveaza datele</button>
+					</form>
 				</section>
 
 				<section class="account-panel account-active-reward" aria-labelledby="active-reward-title">
@@ -200,6 +226,7 @@ function formatPromoStatus(string $status): string
 	<script>
 		const logoutButton = document.querySelector('[data-account-logout]');
 		const accountAuth = document.querySelector('[data-account-auth]');
+		const accountProfileForm = document.querySelector('[data-account-profile-form]');
 
 		if (logoutButton) {
 			logoutButton.addEventListener('click', async () => {
@@ -298,6 +325,59 @@ function formatPromoStatus(string $status): string
 						if (submitButton) submitButton.disabled = false;
 					}
 				});
+			});
+		}
+
+		if (accountProfileForm) {
+			const profileMessage = document.querySelector('[data-account-profile-message]');
+
+			accountProfileForm.addEventListener('submit', async (event) => {
+				event.preventDefault();
+
+				const submitButton = accountProfileForm.querySelector('button[type="submit"]');
+				const payload = Object.fromEntries(new FormData(accountProfileForm).entries());
+
+				if (profileMessage) {
+					profileMessage.textContent = '';
+					profileMessage.hidden = true;
+				}
+				if (submitButton) submitButton.disabled = true;
+
+				try {
+					const response = await fetch('../api/update-profile.php', {
+						method: 'POST',
+						credentials: 'same-origin',
+						headers: {
+							Accept: 'application/json',
+							'Content-Type': 'application/json',
+						},
+						body: JSON.stringify(payload),
+					});
+					const data = await response.json();
+
+					if (!response.ok || !data.success) {
+						const message = data.errors
+							? Object.values(data.errors).filter(Boolean).join(' ')
+							: data.error || 'Datele contului nu au putut fi actualizate.';
+						if (profileMessage) {
+							profileMessage.textContent = message;
+							profileMessage.hidden = false;
+						}
+						return;
+					}
+
+					if (profileMessage) {
+						profileMessage.textContent = data.message || 'Datele contului au fost actualizate.';
+						profileMessage.hidden = false;
+					}
+				} catch (error) {
+					if (profileMessage) {
+						profileMessage.textContent = 'Datele contului nu au putut fi actualizate.';
+						profileMessage.hidden = false;
+					}
+				} finally {
+					if (submitButton) submitButton.disabled = false;
+				}
 			});
 		}
 	</script>

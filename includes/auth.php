@@ -44,7 +44,7 @@ function getCurrentUser(PDO $pdo): ?array
 	}
 
 	$statement = $pdo->prepare(
-		'SELECT id, name, email
+		'SELECT id, name, email, phone
 		 FROM users
 		 WHERE id = :id
 			AND role = \'customer\'
@@ -62,5 +62,6 @@ function getCurrentUser(PDO $pdo): ?array
 		'id' => (int) $user['id'],
 		'name' => (string) $user['name'],
 		'email' => (string) $user['email'],
+		'phone' => $user['phone'] !== null ? (string) $user['phone'] : null,
 	];
 }
