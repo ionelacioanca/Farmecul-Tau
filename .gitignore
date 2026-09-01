@@ -1,0 +1,6 @@
+.env
+/.composer-home/
+/composer.phar
+/composer-setup.php
+/vendor/
+temporary-admin
