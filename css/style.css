@@ -1168,6 +1168,57 @@ body {
 	line-height: 1.18;
 }
 
+.account-appointment-head {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px;
+}
+
+.account-appointment-type,
+.account-appointment-note {
+	margin: 0;
+}
+
+.account-appointment-type {
+	color: var(--emerald);
+	font-size: 0.82rem;
+	font-weight: 800;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.account-appointment-status {
+	flex: 0 0 auto;
+	border: 1px solid rgba(25, 90, 72, 0.24);
+	border-radius: 999px;
+	padding: 7px 11px;
+	color: var(--emerald);
+	font-size: 0.78rem;
+	font-weight: 800;
+	letter-spacing: 0.08em;
+	line-height: 1;
+	text-transform: uppercase;
+}
+
+.account-appointment-status-active {
+	border-color: rgba(25, 90, 72, 0.32);
+	background: rgba(25, 90, 72, 0.1);
+}
+
+.account-appointment-status-completed {
+	border-color: rgba(198, 161, 91, 0.46);
+	background: rgba(198, 161, 91, 0.12);
+	color: #573e2e;
+}
+
+.account-appointment-status-rejected,
+.account-appointment-status-cancelled {
+	border-color: rgba(143, 29, 29, 0.28);
+	background: rgba(143, 29, 29, 0.08);
+	color: #8f1d1d;
+}
+
 .account-history-item dl {
 	display: grid;
 	grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1182,6 +1233,109 @@ body {
 	font-size: 1.08rem;
 	font-weight: 600;
 	overflow-wrap: anywhere;
+}
+
+.account-appointment-note {
+	margin-top: 16px;
+	border-left: 2px solid var(--gold);
+	padding-left: 12px;
+	color: rgba(17, 17, 17, 0.72);
+	font-family: 'Cormorant Garamond', Georgia, serif;
+	font-size: 1rem;
+	line-height: 1.45;
+}
+
+.account-appointment-actions,
+.account-reschedule-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin-top: 18px;
+}
+
+.account-action-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border: 1px solid rgba(25, 90, 72, 0.34);
+	border-radius: 999px;
+	background: transparent;
+	padding: 10px 14px;
+	color: var(--emerald);
+	font-family: 'Montserrat', Arial, sans-serif;
+	font-size: 0.78rem;
+	font-weight: 800;
+	letter-spacing: 0.08em;
+	line-height: 1;
+	text-transform: uppercase;
+	transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.account-action-button:hover,
+.account-action-button:focus-visible {
+	border-color: var(--emerald);
+	background: rgba(25, 90, 72, 0.08);
+}
+
+.account-action-button:disabled {
+	cursor: default;
+	opacity: 0.64;
+}
+
+.account-action-danger {
+	border-color: rgba(143, 29, 29, 0.36);
+	color: #8f1d1d;
+}
+
+.account-action-danger:hover,
+.account-action-danger:focus-visible {
+	border-color: #8f1d1d;
+	background: rgba(143, 29, 29, 0.08);
+}
+
+.account-reschedule-form {
+	margin-top: 18px;
+	border-top: 1px solid rgba(198, 161, 91, 0.24);
+	padding-top: 18px;
+}
+
+.account-reschedule-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 16px;
+}
+
+.account-reschedule-grid label {
+	display: grid;
+	gap: 8px;
+	color: var(--black);
+	font-family: 'Montserrat', Arial, sans-serif;
+	font-size: 0.8rem;
+	font-weight: 800;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.account-reschedule-grid input,
+.account-reschedule-grid select {
+	width: 100%;
+	border: 1px solid rgba(25, 90, 72, 0.2);
+	border-radius: 0;
+	background: rgba(255, 255, 240, 0.76);
+	padding: 12px 14px;
+	color: var(--black);
+	font-family: 'Montserrat', Arial, sans-serif;
+	font-size: 0.95rem;
+	letter-spacing: 0;
+	text-transform: none;
+}
+
+.account-reschedule-actions {
+	align-items: center;
+}
+
+.account-reschedule-actions .account-button {
+	padding: 11px 16px;
 }
 
 .account-button,
@@ -1331,6 +1485,28 @@ body {
 }
 
 .account-profile-form .account-button:disabled {
+	cursor: default;
+	opacity: 0.64;
+}
+
+.account-danger {
+	border-color: rgba(143, 29, 29, 0.24);
+}
+
+.account-danger-button {
+	border-color: rgba(143, 29, 29, 0.52);
+	background: #8f1d1d;
+	color: var(--ivory);
+}
+
+.account-danger-button:hover,
+.account-danger-button:focus-visible {
+	border-color: #8f1d1d;
+	background: transparent;
+	color: #8f1d1d;
+}
+
+.account-danger-button:disabled {
 	cursor: default;
 	opacity: 0.64;
 }
@@ -3388,6 +3564,13 @@ button.offer-cta {
 	.account-code-grid,
 	.account-history-item dl,
 	.account-profile-form {
+		grid-template-columns: 1fr;
+	}
+	.account-appointment-head {
+		align-items: flex-start;
+		flex-direction: column;
+	}
+	.account-reschedule-grid {
 		grid-template-columns: 1fr;
 	}
 	.account-auth-tabs {

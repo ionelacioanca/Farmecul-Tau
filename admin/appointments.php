@@ -5,6 +5,7 @@ require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/admin-auth.php';
 require_once __DIR__ . '/../includes/admin-ui.php';
 require_once __DIR__ . '/../includes/booking.php';
+require_once __DIR__ . '/../includes/appointment-notifications.php';
 
 setSalonTimezone();
 $dashboardUser = requireAdminUser($pdo);
@@ -118,6 +119,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 			);
 			$updateStatement->execute(['id' => $appointmentId]);
 			$pdo->commit();
+
+			if ($updateStatement->rowCount() > 0 && !sendAppointmentApprovedEmail($pdo, $appointmentId)) {
+				error_log('Farmecul Tau appointment approved, notification email failed. Appointment ID: ' . $appointmentId);
+			}
 			adminRedirectWithMessage($returnPath, 'message', 'Programarea a fost aprobată.');
 		} catch (Throwable $exception) {
 			if ($pdo->inTransaction()) {
@@ -170,6 +175,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 				'admin_note' => $adminNote !== '' ? $adminNote : null,
 			]);
 			$pdo->commit();
+
+			if ($updateStatement->rowCount() > 0 && !sendAppointmentRejectedEmail($pdo, $appointmentId)) {
+				error_log('Farmecul Tau appointment rejected, notification email failed. Appointment ID: ' . $appointmentId);
+			}
+
 			adminRedirectWithMessage($returnPath, 'message', 'Programarea a fost respinsă.');
 		} catch (Throwable $exception) {
 			if ($pdo->inTransaction()) {

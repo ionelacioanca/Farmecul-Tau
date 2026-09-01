@@ -8,10 +8,44 @@ require_once __DIR__ . '/../includes/promo-eligibility.php';
 $user = getCurrentUser($pdo);
 $activePromo = null;
 $promoHistory = [];
+$appointments = [];
 
 if ($user !== null) {
 	$activePromo = getActivePromoCodeForUser($pdo, (int) $user['id']);
 	$promoHistory = getPromoCodesForUser($pdo, (int) $user['id']);
+
+	$now = new DateTimeImmutable('now', new DateTimeZone('Europe/Bucharest'));
+	$appointmentStatement = $pdo->prepare(
+		"SELECT
+			a.id,
+			a.booking_type,
+			a.start_datetime,
+			a.end_datetime,
+			a.price_at_booking,
+			a.duration_minutes_at_booking,
+			a.status,
+			a.source,
+			a.notes,
+			sv.name AS service_name,
+			ofr.title AS offer_title,
+			sp.name AS specialist_name
+		 FROM appointments a
+		 LEFT JOIN services sv ON sv.id = a.service_id
+		 LEFT JOIN offers ofr ON ofr.id = a.offer_id
+		 INNER JOIN specialists sp ON sp.id = a.specialist_id
+		 WHERE a.customer_user_id = :customer_user_id
+		 ORDER BY
+			CASE WHEN a.start_datetime >= :now_active AND a.status IN ('pending', 'approved') THEN 0 ELSE 1 END ASC,
+			CASE WHEN a.start_datetime >= :now_future THEN a.start_datetime END ASC,
+			a.start_datetime DESC,
+			a.id DESC"
+	);
+	$appointmentStatement->execute([
+		'customer_user_id' => (int) $user['id'],
+		'now_active' => $now->format('Y-m-d H:i:s'),
+		'now_future' => $now->format('Y-m-d H:i:s'),
+	]);
+	$appointments = $appointmentStatement->fetchAll();
 }
 
 function escapeHtml(string $value): string
@@ -55,8 +89,77 @@ function formatPromoStatus(string $status): string
 		'active' => 'ACTIV',
 		'used' => 'FOLOSIT',
 		'expired' => 'EXPIRAT',
+		'pending' => 'ÎN AȘTEPTARE',
+		'approved' => 'APROBATĂ',
+		'rejected' => 'RESPINSĂ',
+		'cancelled' => 'ANULATĂ',
 		default => strtoupper($status),
 	};
+}
+
+function formatAccountTime(?string $dateValue): string
+{
+	if ($dateValue === null || $dateValue === '') {
+		return '-';
+	}
+
+	try {
+		$date = new DateTimeImmutable($dateValue);
+	} catch (Exception $exception) {
+		return $dateValue;
+	}
+
+	return $date->format('H:i');
+}
+
+function formatAccountDateInput(?string $dateValue): string
+{
+	if ($dateValue === null || $dateValue === '') {
+		return '';
+	}
+
+	try {
+		$date = new DateTimeImmutable($dateValue);
+	} catch (Exception $exception) {
+		return '';
+	}
+
+	return $date->format('Y-m-d');
+}
+
+function formatAccountPrice(?string $price): string
+{
+	if ($price === null || $price === '') {
+		return '-';
+	}
+
+	return number_format((float) $price, 2, ',', '.') . ' lei';
+}
+
+function formatAccountAppointmentState(array $appointment): array
+{
+	$status = (string) ($appointment['status'] ?? '');
+
+	if ($status === 'rejected') {
+		return ['label' => 'RESPINSĂ', 'class' => 'rejected'];
+	}
+
+	if ($status === 'cancelled') {
+		return ['label' => 'ANULATĂ', 'class' => 'cancelled'];
+	}
+
+	try {
+		$start = new DateTimeImmutable((string) $appointment['start_datetime']);
+		$now = new DateTimeImmutable('now', new DateTimeZone('Europe/Bucharest'));
+	} catch (Exception $exception) {
+		return ['label' => strtoupper($status), 'class' => $status];
+	}
+
+	if ($start >= $now && in_array($status, ['pending', 'approved'], true)) {
+		return ['label' => 'ACTIVĂ', 'class' => 'active'];
+	}
+
+	return ['label' => 'FINALIZATĂ', 'class' => 'completed'];
 }
 ?>
 <!DOCTYPE html>
@@ -154,6 +257,13 @@ function formatPromoStatus(string $status): string
 					</form>
 				</section>
 
+				<section class="account-panel account-danger" aria-labelledby="account-danger-title">
+					<h2 class="account-section-title" id="account-danger-title">STERGERE CONT</h2>
+					<p class="account-text">Stergerea contului elimina accesul la profil. Programarile vechi raman in istoricul salonului fara legatura cu acest cont.</p>
+					<p class="account-auth-message" data-account-delete-message role="alert" hidden></p>
+					<button class="account-button account-danger-button" type="button" data-account-delete>STERGE CONTUL</button>
+				</section>
+
 				<section class="account-panel account-active-reward" aria-labelledby="active-reward-title">
 					<p class="account-kicker">SURPRIZA TA ACTIVĂ</p>
 					<?php if ($activePromo !== null): ?>
@@ -215,8 +325,97 @@ function formatPromoStatus(string $status): string
 				</section>
 
 				<section class="account-panel account-booking-history" aria-labelledby="booking-history-title">
-					<h2 class="account-section-title" id="booking-history-title">ISTORIC PROGRAMĂRI</h2>
-					<p class="account-text">Această secțiune va fi disponibilă într-un pas următor.</p>
+					<h2 class="account-section-title" id="booking-history-title">PROGRAMĂRILE MELE</h2>
+
+					<?php if ($appointments === []): ?>
+						<p class="account-text">Nu ai încă programări în cont.</p>
+					<?php else: ?>
+						<div class="account-history-list account-appointment-list">
+							<?php foreach ($appointments as $appointment): ?>
+								<?php
+									$appointmentState = formatAccountAppointmentState($appointment);
+									$isOffer = (string) ($appointment['booking_type'] ?? 'service') === 'offer';
+									$appointmentTitle = $isOffer
+										? (string) ($appointment['offer_title'] ?? 'Oferta')
+										: (string) ($appointment['service_name'] ?? 'Serviciu');
+									$appointmentDateValue = formatAccountDateInput((string) $appointment['start_datetime']);
+									$appointmentTimeValue = formatAccountTime((string) $appointment['start_datetime']);
+									$canManageAppointment = $appointmentState['class'] === 'active';
+								?>
+								<article
+									class="account-history-item account-appointment-item"
+									data-account-appointment
+									data-appointment-id="<?php echo (int) $appointment['id']; ?>"
+									data-appointment-current-date="<?php echo escapeHtml($appointmentDateValue); ?>"
+									data-appointment-current-time="<?php echo escapeHtml($appointmentTimeValue); ?>"
+								>
+									<div class="account-appointment-head">
+										<div>
+											<p class="account-appointment-type"><?php echo $isOffer ? 'Ofertă' : 'Serviciu'; ?></p>
+											<h3><?php echo escapeHtml($appointmentTitle); ?></h3>
+										</div>
+										<span class="account-appointment-status account-appointment-status-<?php echo escapeHtml($appointmentState['class']); ?>">
+											<?php echo escapeHtml($appointmentState['label']); ?>
+										</span>
+									</div>
+									<dl>
+										<div>
+											<dt>Specialist</dt>
+											<dd><?php echo escapeHtml((string) $appointment['specialist_name']); ?></dd>
+										</div>
+										<div>
+											<dt>Data</dt>
+											<dd><?php echo escapeHtml(formatAccountDate((string) $appointment['start_datetime'])); ?></dd>
+										</div>
+										<div>
+											<dt>Ora</dt>
+											<dd><?php echo escapeHtml(formatAccountTime((string) $appointment['start_datetime'])); ?></dd>
+										</div>
+										<div>
+											<dt>Durată</dt>
+											<dd><?php echo (int) $appointment['duration_minutes_at_booking']; ?> min</dd>
+										</div>
+										<div>
+											<dt>Preț</dt>
+											<dd><?php echo escapeHtml(formatAccountPrice($appointment['price_at_booking'] !== null ? (string) $appointment['price_at_booking'] : null)); ?></dd>
+										</div>
+										<div>
+											<dt>Status salon</dt>
+											<dd><?php echo escapeHtml(formatPromoStatus((string) $appointment['status'])); ?></dd>
+										</div>
+									</dl>
+									<?php if ($appointment['notes'] !== null && trim((string) $appointment['notes']) !== ''): ?>
+										<p class="account-appointment-note"><?php echo escapeHtml((string) $appointment['notes']); ?></p>
+									<?php endif; ?>
+									<?php if ($canManageAppointment): ?>
+										<div class="account-appointment-actions">
+											<button class="account-action-button" type="button" data-appointment-reschedule-toggle>Reprogramează</button>
+											<button class="account-action-button account-action-danger" type="button" data-appointment-cancel>Anulează</button>
+										</div>
+										<form class="account-reschedule-form" data-appointment-reschedule-form hidden>
+											<div class="account-reschedule-grid">
+												<label>
+													<span>Zi</span>
+													<input type="date" name="date" min="<?php echo escapeHtml((new DateTimeImmutable('today', new DateTimeZone('Europe/Bucharest')))->format('Y-m-d')); ?>" value="<?php echo escapeHtml($appointmentDateValue); ?>" required>
+												</label>
+												<label>
+													<span>Ora</span>
+													<select name="time" required>
+														<option value="<?php echo escapeHtml($appointmentTimeValue); ?>"><?php echo escapeHtml($appointmentTimeValue); ?></option>
+													</select>
+												</label>
+											</div>
+											<p class="account-auth-message" data-appointment-message role="alert" hidden></p>
+											<div class="account-reschedule-actions">
+												<button class="account-button" type="submit">Salvează</button>
+												<button class="account-action-button" type="button" data-appointment-reschedule-close>Închide</button>
+											</div>
+										</form>
+									<?php endif; ?>
+								</article>
+							<?php endforeach; ?>
+						</div>
+					<?php endif; ?>
 				</section>
 			<?php endif; ?>
 		</div>
@@ -227,6 +426,7 @@ function formatPromoStatus(string $status): string
 		const logoutButton = document.querySelector('[data-account-logout]');
 		const accountAuth = document.querySelector('[data-account-auth]');
 		const accountProfileForm = document.querySelector('[data-account-profile-form]');
+		const accountDeleteButton = document.querySelector('[data-account-delete]');
 
 		if (logoutButton) {
 			logoutButton.addEventListener('click', async () => {
@@ -380,6 +580,276 @@ function formatPromoStatus(string $status): string
 				}
 			});
 		}
+
+		if (accountDeleteButton) {
+			const deleteMessage = document.querySelector('[data-account-delete-message]');
+
+			const showDeleteMessage = (message) => {
+				if (!deleteMessage) return;
+
+				deleteMessage.textContent = message;
+				deleteMessage.hidden = false;
+			};
+
+			const requestAccountDelete = async (cancelActiveAppointments = false) => {
+				const response = await fetch('../api/delete-account.php', {
+					method: 'POST',
+					credentials: 'same-origin',
+					headers: {
+						Accept: 'application/json',
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({
+						cancel_active_appointments: cancelActiveAppointments,
+					}),
+				});
+				const data = await response.json();
+
+				return { response, data };
+			};
+
+			accountDeleteButton.addEventListener('click', async () => {
+				if (!confirm('Sigur vrei sa stergi contul?')) {
+					return;
+				}
+
+				accountDeleteButton.disabled = true;
+				if (deleteMessage) {
+					deleteMessage.textContent = '';
+					deleteMessage.hidden = true;
+				}
+
+				try {
+					let result = await requestAccountDelete(false);
+
+					if (result.response.status === 409 && result.data.requires_confirmation) {
+						const count = Number(result.data.active_appointment_count || 0);
+						const prompt = count === 1
+							? 'Ai o programare activa. Vrei sa o anulezi si sa stergi contul?'
+							: `Ai ${count} programari active. Vrei sa le anulezi si sa stergi contul?`;
+
+						if (!confirm(prompt)) {
+							showDeleteMessage('Contul nu a fost sters.');
+							return;
+						}
+
+						result = await requestAccountDelete(true);
+					}
+
+					if (!result.response.ok || !result.data.success) {
+						showDeleteMessage(result.data.error || result.data.message || 'Contul nu a putut fi sters.');
+						return;
+					}
+
+					window.location.href = '../index.php';
+				} catch (error) {
+					showDeleteMessage('Contul nu a putut fi sters.');
+				} finally {
+					accountDeleteButton.disabled = false;
+				}
+			});
+		}
+
+		document.querySelectorAll('[data-account-appointment]').forEach((appointmentCard) => {
+			const appointmentId = appointmentCard.dataset.appointmentId;
+			const toggleButton = appointmentCard.querySelector('[data-appointment-reschedule-toggle]');
+			const closeButton = appointmentCard.querySelector('[data-appointment-reschedule-close]');
+			const cancelButton = appointmentCard.querySelector('[data-appointment-cancel]');
+			const form = appointmentCard.querySelector('[data-appointment-reschedule-form]');
+			const message = appointmentCard.querySelector('[data-appointment-message]');
+			const dateInput = form ? form.querySelector('input[name="date"]') : null;
+			const timeSelect = form ? form.querySelector('select[name="time"]') : null;
+
+			const showAppointmentMessage = (text) => {
+				if (!message) return;
+
+				message.textContent = text;
+				message.hidden = false;
+			};
+
+			const hideAppointmentMessage = () => {
+				if (!message) return;
+
+				message.textContent = '';
+				message.hidden = true;
+			};
+
+			const getApiMessage = (data, fallback) => {
+				if (data.errors) {
+					return Object.values(data.errors).filter(Boolean).join(' ');
+				}
+
+				return data.error || data.message || fallback;
+			};
+
+			const setTimeOptions = (slots, preferredTime) => {
+				if (!timeSelect) return;
+
+				timeSelect.innerHTML = '';
+
+				if (!Array.isArray(slots) || slots.length === 0) {
+					const option = document.createElement('option');
+					option.value = '';
+					option.textContent = 'Nu există ore disponibile';
+					timeSelect.append(option);
+					timeSelect.disabled = true;
+					return;
+				}
+
+				const placeholder = document.createElement('option');
+				placeholder.value = '';
+				placeholder.textContent = 'Alege ora';
+				timeSelect.append(placeholder);
+
+				slots.forEach((slot) => {
+					const option = document.createElement('option');
+					option.value = slot;
+					option.textContent = slot;
+					timeSelect.append(option);
+				});
+
+				timeSelect.disabled = false;
+
+				if (slots.includes(preferredTime)) {
+					timeSelect.value = preferredTime;
+				}
+			};
+
+			const loadAvailableTimes = async () => {
+				if (!appointmentId || !dateInput || !timeSelect) return;
+
+				const selectedDate = dateInput.value;
+				const preferredTime = selectedDate === appointmentCard.dataset.appointmentCurrentDate
+					? appointmentCard.dataset.appointmentCurrentTime
+					: '';
+
+				hideAppointmentMessage();
+				timeSelect.disabled = true;
+				timeSelect.innerHTML = '<option value="">Se încarcă...</option>';
+
+				try {
+					const params = new URLSearchParams({
+						appointment_id: appointmentId,
+						date: selectedDate,
+					});
+					const response = await fetch(`../api/get-account-appointment-availability.php?${params.toString()}`, {
+						credentials: 'same-origin',
+						headers: { Accept: 'application/json' },
+					});
+					const data = await response.json();
+
+					if (!response.ok || !data.success) {
+						setTimeOptions([], '');
+						showAppointmentMessage(getApiMessage(data, 'Orele disponibile nu au putut fi incarcate.'));
+						return;
+					}
+
+					setTimeOptions(data.slots || [], preferredTime);
+				} catch (error) {
+					setTimeOptions([], '');
+					showAppointmentMessage('Orele disponibile nu au putut fi incarcate.');
+				}
+			};
+
+			if (toggleButton && form) {
+				toggleButton.addEventListener('click', async () => {
+					form.hidden = !form.hidden;
+
+					if (!form.hidden) {
+						await loadAvailableTimes();
+					}
+				});
+			}
+
+			if (closeButton && form) {
+				closeButton.addEventListener('click', () => {
+					form.hidden = true;
+					hideAppointmentMessage();
+				});
+			}
+
+			if (dateInput) {
+				dateInput.addEventListener('change', loadAvailableTimes);
+			}
+
+			if (cancelButton) {
+				cancelButton.addEventListener('click', async () => {
+					if (!appointmentId || !confirm('Sigur vrei sa anulezi aceasta programare?')) {
+						return;
+					}
+
+					cancelButton.disabled = true;
+					hideAppointmentMessage();
+
+					try {
+						const response = await fetch('../api/cancel-appointment.php', {
+							method: 'POST',
+							credentials: 'same-origin',
+							headers: {
+								Accept: 'application/json',
+								'Content-Type': 'application/json',
+							},
+							body: JSON.stringify({ appointment_id: appointmentId }),
+						});
+						const data = await response.json();
+
+						if (!response.ok || !data.success) {
+							showAppointmentMessage(getApiMessage(data, 'Programarea nu a putut fi anulata.'));
+							return;
+						}
+
+						window.location.reload();
+					} catch (error) {
+						showAppointmentMessage('Programarea nu a putut fi anulata.');
+					} finally {
+						cancelButton.disabled = false;
+					}
+				});
+			}
+
+			if (form) {
+				form.addEventListener('submit', async (event) => {
+					event.preventDefault();
+
+					if (!appointmentId || !dateInput || !timeSelect || !dateInput.value || !timeSelect.value) {
+						showAppointmentMessage('Alege ziua si ora pentru reprogramare.');
+						return;
+					}
+
+					const submitButton = form.querySelector('button[type="submit"]');
+					hideAppointmentMessage();
+					if (submitButton) submitButton.disabled = true;
+
+					try {
+						const response = await fetch('../api/reschedule-appointment.php', {
+							method: 'POST',
+							credentials: 'same-origin',
+							headers: {
+								Accept: 'application/json',
+								'Content-Type': 'application/json',
+							},
+							body: JSON.stringify({
+								appointment_id: appointmentId,
+								date: dateInput.value,
+								time: timeSelect.value,
+							}),
+						});
+						const data = await response.json();
+
+						if (!response.ok || !data.success) {
+							showAppointmentMessage(getApiMessage(data, 'Programarea nu a putut fi reprogramata.'));
+							return;
+						}
+
+						window.location.reload();
+					} catch (error) {
+						showAppointmentMessage('Programarea nu a putut fi reprogramata.');
+					} finally {
+						if (submitButton) submitButton.disabled = false;
+					}
+				});
+			}
+		});
 	</script>
 </body>
 </html>

@@ -7,6 +7,7 @@ require_once __DIR__ . '/../includes/api-response.php';
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/booking.php';
 require_once __DIR__ . '/../includes/offer-helpers.php';
+require_once __DIR__ . '/../includes/appointment-notifications.php';
 require_once __DIR__ . '/../includes/db.php';
 
 setSalonTimezone();
@@ -213,6 +214,10 @@ try {
 
 	$appointmentId = (int) $pdo->lastInsertId();
 	$pdo->commit();
+
+	if (!sendAppointmentPendingEmail($pdo, $appointmentId)) {
+		error_log('Farmecul Tau appointment saved, notification email failed. Appointment ID: ' . $appointmentId);
+	}
 
 	sendJsonResponse(201, [
 		'success' => true,
